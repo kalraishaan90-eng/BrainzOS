@@ -1,0 +1,2156 @@
+<!--
+========================================================================================
+BRAINZOS — FOUNDATION OPERATING SYSTEM SHELL
+An operating system for an entire school.
+========================================================================================
+DEMO TESTER CREDENTIALS (ROLE DETECTION ONLY — NEVER EXPOSE ROLE SWITCH IN UI):
+  • Student:  student@brainz.edu  (e.g., ishaan.student@brainz.edu)
+  • Teacher:  teacher@brainz.edu  (e.g., sarah.teacher@brainz.edu)
+  • Director: director@brainz.edu (or admin@brainz.edu)
+========================================================================================
+NOTE FOR EXTENDING AGENTS:
+  1. Insert student page views inside <!-- STUDENT_PAGES_START --> ... <!-- STUDENT_PAGES_END -->
+  2. Insert teacher page views inside <!-- TEACHER_PAGES_START --> ... <!-- TEACHER_PAGES_END -->
+  3. Insert director page views inside <!-- DIRECTOR_PAGES_START --> ... <!-- DIRECTOR_PAGES_END -->
+  4. Register role navigation items inside ROLE_NAV_CONFIG in the <script> block.
+  5. Use navigateTo('page-id') to switch views.
+========================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrainzOS — Institutional Operating System</title>
+
+  <!-- Typography: Newsreader (Refined Academic Serif) + Plus Jakarta Sans (Clean Grotesk) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Line Icons CDN (Clean, consistent stroke line icons) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* =========================================================================
+       1. DESIGN SYSTEM TOKENS
+       ========================================================================= */
+    :root {
+      /* Required Brand Colors */
+      --color-blue: #6A8EAE;        /* Primary interactive & focus */
+      --color-beige: #D4C9B7;       /* Secondary highlights & warm borders */
+      --color-cream: #F8F4ED;       /* Main application background */
+      --color-sage: #9EBBAF;        /* Positive / live status indicator */
+
+      /* Supporting Refined Institutional Palette */
+      --color-ink: #1C232B;         /* Deep academic slate for primary text */
+      --color-ink-muted: #5C6773;   /* Secondary muted slate */
+      --color-ink-subtle: #8C97A4;  /* Tertiary subtle slate */
+      --color-surface-white: #FFFFFF;
+      --color-surface-cream: #FAF7F2;
+      --color-border: rgba(106, 142, 174, 0.16);
+      --color-border-subtle: rgba(28, 35, 43, 0.08);
+      --color-border-warm: rgba(212, 201, 183, 0.45);
+      
+      /* Glassmorphic Surfaces (used intentionally and sparingly) */
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-bg-subtle: rgba(248, 244, 237, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.65);
+      --glass-blur: blur(16px);
+      
+      /* Typography */
+      --font-heading: "Newsreader", "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Georgia, serif;
+      --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      
+      /* Type Scale */
+      --text-xs: 0.75rem;    /* 12px */
+      --text-sm: 0.844rem;   /* 13.5px */
+      --text-base: 0.938rem; /* 15px */
+      --text-md: 1.063rem;   /* 17px */
+      --text-lg: 1.25rem;    /* 20px */
+      --text-xl: 1.5rem;     /* 24px */
+      --text-2xl: 1.875rem;  /* 30px */
+      --text-3xl: 2.375rem;  /* 38px */
+      --text-4xl: 3.125rem;  /* 50px */
+
+      /* Elevations & Radii */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      --shadow-subtle: 0 1px 3px rgba(28, 35, 43, 0.04), 0 4px 12px rgba(28, 35, 43, 0.02);
+      --shadow-raised: 0 4px 20px -2px rgba(28, 35, 43, 0.06), 0 2px 6px -1px rgba(28, 35, 43, 0.03);
+      --shadow-floating: 0 16px 48px -8px rgba(28, 35, 43, 0.12), 0 4px 12px rgba(28, 35, 43, 0.04);
+
+      /* Motion & Physics */
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration-quick: 180ms;
+      --duration-normal: 260ms;
+
+      /* Layout Dimensions */
+      --sidebar-width: 264px;
+      --sidebar-collapsed-width: 76px;
+      --topbar-height: 68px;
+    }
+
+    /* =========================================================================
+       2. BASE RESET & NORMALIZATION
+       ========================================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--color-cream);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Subtle architectural paper texture gradient */
+    body {
+      background-image: 
+        radial-gradient(ellipse at 10% 0%, rgba(212, 201, 183, 0.18) 0%, transparent 45%),
+        radial-gradient(ellipse at 90% 100%, rgba(158, 187, 175, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 15%, rgba(106, 142, 174, 0.12) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      outline: none;
+    }
+
+    input {
+      outline: none;
+      border: 1px solid var(--color-border);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Accessible focus state */
+    :focus-visible {
+      outline: 2px solid var(--color-blue);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================================
+       3. REFINED TYPOGRAPHIC SCALE
+       ========================================================================= */
+    h1, h2, h3, h4, .font-heading {
+      font-family: var(--font-heading);
+      color: var(--color-ink);
+      font-weight: 500;
+      letter-spacing: -0.022em;
+      line-height: 1.15;
+    }
+
+    h1 { font-size: var(--text-3xl); font-weight: 600; }
+    h2 { font-size: var(--text-2xl); font-weight: 500; }
+    h3 { font-size: var(--text-xl); font-weight: 500; }
+    h4 { font-size: var(--text-lg); font-weight: 500; }
+
+    p {
+      color: var(--color-ink-muted);
+    }
+
+    .subtext {
+      font-size: var(--text-sm);
+      color: var(--color-ink-subtle);
+    }
+
+    /* =========================================================================
+       4. ELEVATION CARDS & UTILITY CLASSES
+       ========================================================================= */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-raised);
+      transition: box-shadow var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .card-flat {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--color-border-subtle);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .card-elevated {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      box-shadow: var(--shadow-floating);
+    }
+
+    /* Table Container Utility (overflow-x safe for mobile) */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border-subtle);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .table-container table {
+      width: 100%;
+      min-width: 560px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .table-container th {
+      padding: 14px 18px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      border-bottom: 1px solid var(--color-border-subtle);
+      background: rgba(248, 244, 237, 0.5);
+    }
+
+    .table-container td {
+      padding: 14px 18px;
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-blue {
+      background: rgba(106, 142, 174, 0.14);
+      color: #3f607c;
+      border: 1px solid rgba(106, 142, 174, 0.28);
+    }
+
+    .badge-sage {
+      background: rgba(158, 187, 175, 0.22);
+      color: #436959;
+      border: 1px solid rgba(158, 187, 175, 0.4);
+    }
+
+    .badge-beige {
+      background: rgba(212, 201, 183, 0.28);
+      color: #695e4d;
+      border: 1px solid rgba(212, 201, 183, 0.5);
+    }
+
+    /* =========================================================================
+       5. LOGIN EXPERIENCE & ROLE DETECTOR
+       ========================================================================= */
+    .login-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      position: relative;
+      z-index: 10;
+      transition: opacity var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .login-viewport.hidden-view {
+      display: none !important;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 470px;
+      padding: 44px 38px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-floating);
+      position: relative;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-beige), transparent);
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .brand-crest {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--color-ink);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 1.35rem;
+      border: 1px solid rgba(212, 201, 183, 0.35);
+      box-shadow: 0 4px 14px rgba(28, 35, 43, 0.12);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-ink);
+      line-height: 1.1;
+    }
+
+    .brand-tagline {
+      font-size: 0.688rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-top: 3px;
+    }
+
+    .login-heading {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      letter-spacing: -0.025em;
+    }
+
+    .login-description {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 16px;
+      color: var(--color-ink-subtle);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 14px 16px 14px 46px;
+      background: rgba(248, 244, 237, 0.65);
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-md);
+      font-size: var(--text-base);
+      color: var(--color-ink);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .input-wrapper input:focus {
+      background: #FFFFFF;
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 4px rgba(106, 142, 174, 0.15);
+    }
+
+    /* Live Detected Role Indicator Pill */
+    .role-detection-box {
+      margin: 14px 0 22px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(248, 244, 237, 0.7);
+      border: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      transition: all var(--duration-normal) var(--ease-spring);
+    }
+
+    .role-detection-box.detected {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: var(--color-blue);
+      box-shadow: 0 4px 16px rgba(106, 142, 174, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .detection-label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+    }
+
+    .detection-result {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      opacity: 0.8;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .detection-result.active {
+      color: var(--color-ink);
+      opacity: 1;
+      animation: roleEntrance 300ms var(--ease-spring);
+    }
+
+    .role-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-ink-subtle);
+      transition: background-color var(--duration-quick) ease;
+    }
+
+    .detection-result.student .role-dot { background: var(--color-blue); }
+    .detection-result.teacher .role-dot { background: var(--color-sage); }
+    .detection-result.director .role-dot { background: #8E7C68; }
+
+    @keyframes roleEntrance {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--color-blue);
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: var(--text-base);
+      letter-spacing: -0.01em;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(106, 142, 174, 0.35);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #5A7E9E;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(106, 142, 174, 0.42);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-md);
+      color: var(--color-ink);
+      font-weight: 500;
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .btn-secondary:hover {
+      background: #FFFFFF;
+      border-color: var(--color-beige);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .auth-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+      line-height: 1.6;
+    }
+
+    /* =========================================================================
+       6. APP SHELL LAYOUT
+       ========================================================================= */
+    .app-viewport {
+      display: none;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .app-viewport.active-view {
+      display: block;
+      animation: shellFadeIn 320ms var(--ease-spring);
+    }
+
+    @keyframes shellFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Left Sidebar */
+    .app-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transition: width var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .sidebar-header {
+      height: var(--topbar-height);
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-crest {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--color-ink);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-text {
+      line-height: 1.15;
+    }
+
+    .sidebar-brand-text strong {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-ink);
+    }
+
+    .sidebar-brand-text small {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+    }
+
+    /* Navigation items container */
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-category {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      padding: 12px 12px 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      color: var(--color-ink-muted);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      text-align: left;
+      transition: all var(--duration-quick) var(--ease-spring);
+      position: relative;
+    }
+
+    .nav-btn:hover {
+      background: rgba(106, 142, 174, 0.08);
+      color: var(--color-ink);
+    }
+
+    .nav-btn.active {
+      background: rgba(106, 142, 174, 0.14);
+      color: var(--color-ink);
+      font-weight: 600;
+    }
+
+    .nav-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--color-blue);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8px;
+      flex-shrink: 0;
+      color: inherit;
+    }
+
+    /* Pinned Bottom User Badge */
+    .sidebar-footer {
+      padding: 14px;
+      border-top: 1px solid var(--color-border-subtle);
+      background: rgba(250, 247, 242, 0.6);
+    }
+
+    .user-profile-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--color-border-subtle);
+      transition: background var(--duration-quick) ease;
+    }
+
+    .user-profile-card:hover {
+      background: #FFFFFF;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--color-blue);
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .user-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--color-blue);
+      margin-top: 2px;
+    }
+
+    .user-logout-btn {
+      color: var(--color-ink-subtle);
+      padding: 6px;
+      border-radius: 6px;
+      transition: all var(--duration-quick) ease;
+    }
+
+    .user-logout-btn:hover {
+      color: #c94b4b;
+      background: rgba(201, 75, 75, 0.08);
+    }
+
+    /* Main Content Wrapper */
+    .app-main {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left var(--duration-normal) var(--ease-spring);
+    }
+
+    /* Topbar Header */
+    .app-topbar {
+      height: var(--topbar-height);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(248, 244, 237, 0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      gap: 20px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      max-width: 580px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      color: var(--color-ink);
+    }
+
+    /* Global Search with ⌘K Trigger */
+    .global-search-container {
+      position: relative;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .global-search-input {
+      width: 100%;
+      padding: 10px 48px 10px 38px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--color-border-warm);
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      box-shadow: var(--shadow-subtle);
+      transition: all var(--duration-quick) var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .global-search-input:focus {
+      background: #FFFFFF;
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 3px rgba(106, 142, 174, 0.16);
+    }
+
+    .global-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-ink-subtle);
+      pointer-events: none;
+      width: 16px;
+      height: 16px;
+    }
+
+    .global-search-kbd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: inherit;
+      font-size: 0.688rem;
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      background: var(--color-cream);
+      border: 1px solid var(--color-border);
+      padding: 2px 7px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* Topbar Right Items */
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Sage Live Status Beacon */
+    .system-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid var(--color-border-subtle);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--color-ink);
+      white-space: nowrap;
+    }
+
+    .status-beacon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 8px;
+      height: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-sage);
+    }
+
+    .status-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--color-sage);
+      opacity: 0.7;
+      animation: sagePulse 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+
+    @keyframes sagePulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(2.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    /* Topbar User Profile */
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-left: 8px;
+    }
+
+    .topbar-user-meta {
+      text-align: right;
+      line-height: 1.2;
+    }
+
+    .topbar-user-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .topbar-user-role {
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+    }
+
+    /* Content Canvas Area */
+    .content-canvas {
+      flex: 1;
+      padding: 36px 40px;
+      max-width: 1540px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Page View Containers */
+    .os-page {
+      display: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .os-page.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      animation: pageTransitionIn 260ms var(--ease-spring);
+    }
+
+    @keyframes pageTransitionIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Placeholder Welcome View */
+    .placeholder-container {
+      border: 1px dashed var(--color-beige);
+      border-radius: var(--radius-xl);
+      padding: 60px 40px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .placeholder-badge {
+      display: inline-flex;
+      margin-bottom: 16px;
+    }
+
+    /* =========================================================================
+       7. COMMAND LAUNCHER MODAL (⌘K / Ctrl+K)
+       ========================================================================= */
+    .cmd-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 35, 43, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12vh 20px 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-quick) var(--ease-smooth);
+    }
+
+    .cmd-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cmd-palette {
+      width: 100%;
+      max-width: 580px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-floating);
+      overflow: hidden;
+      transform: translateY(-8px) scale(0.98);
+      transition: transform var(--duration-quick) var(--ease-spring);
+    }
+
+    .cmd-overlay.active .cmd-palette {
+      transform: translateY(0) scale(1);
+    }
+
+    .cmd-search-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      gap: 12px;
+    }
+
+    .cmd-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: var(--text-base);
+      color: var(--color-ink);
+    }
+
+    .cmd-search-input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .cmd-kbd-badge {
+      font-size: 0.688rem;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: var(--color-cream);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-ink-subtle);
+    }
+
+    .cmd-results {
+      max-height: 340px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .cmd-group-title {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      padding: 8px 12px 4px;
+    }
+
+    .cmd-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      cursor: pointer;
+      transition: background var(--duration-quick) ease;
+    }
+
+    .cmd-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cmd-item svg {
+      width: 17px;
+      height: 17px;
+      color: var(--color-ink-muted);
+    }
+
+    .cmd-item:hover, .cmd-item.selected {
+      background: rgba(106, 142, 174, 0.12);
+      color: var(--color-ink);
+    }
+
+    .cmd-item:hover svg, .cmd-item.selected svg {
+      color: var(--color-blue);
+    }
+
+    .cmd-empty {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--color-ink-muted);
+      font-size: var(--text-sm);
+    }
+
+    .cmd-footer {
+      padding: 10px 18px;
+      background: var(--color-cream);
+      border-top: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+    }
+
+    .cmd-hints {
+      display: flex;
+      gap: 14px;
+    }
+
+    /* =========================================================================
+       8. BIOMETRIC AUTHENTICATION SIMULATION MODAL
+       ========================================================================= */
+    .biometric-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 35, 43, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-quick) var(--ease-smooth);
+    }
+
+    .biometric-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .biometric-modal {
+      width: 100%;
+      max-width: 380px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-xl);
+      padding: 38px 28px;
+      text-align: center;
+      box-shadow: var(--shadow-floating);
+      transform: scale(0.94);
+      transition: transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .biometric-overlay.active .biometric-modal {
+      transform: scale(1);
+    }
+
+    .bio-sensor-ring {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: rgba(106, 142, 174, 0.08);
+      border: 2px solid var(--color-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bio-laser-beam {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--color-blue);
+      box-shadow: 0 0 12px var(--color-blue);
+      animation: laserSweep 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 10%; opacity: 0.3; }
+      100% { top: 90%; opacity: 1; }
+    }
+
+    .bio-icon {
+      width: 44px;
+      height: 44px;
+      color: var(--color-blue);
+      stroke-width: 1.5;
+    }
+
+    .bio-success-icon {
+      display: none;
+      width: 46px;
+      height: 46px;
+      color: var(--color-sage);
+    }
+
+    .bio-status-title {
+      font-size: var(--text-lg);
+      margin-bottom: 6px;
+    }
+
+    .bio-status-desc {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+    }
+
+    /* =========================================================================
+       9. RESPONSIVE MEDIA QUERIES
+       ========================================================================= */
+    /* Tablet Breakpoint (1024px and below) */
+    @media (max-width: 1024px) {
+      :root {
+        --sidebar-width: var(--sidebar-collapsed-width);
+      }
+
+      .sidebar-brand-text,
+      .nav-category,
+      .nav-btn span,
+      .user-info,
+      .user-logout-btn {
+        display: none;
+      }
+
+      .sidebar-header {
+        padding: 0 18px;
+        justify-content: center;
+      }
+
+      .nav-btn {
+        justify-content: center;
+        padding: 12px;
+      }
+
+      .nav-btn.active::before {
+        left: 2px;
+      }
+
+      .user-profile-card {
+        padding: 6px;
+        justify-content: center;
+      }
+
+      .content-canvas {
+        padding: 28px 24px;
+      }
+    }
+
+    /* Mobile Breakpoint (768px and below) */
+    @media (max-width: 768px) {
+      .app-sidebar {
+        transform: translateX(-100%);
+        width: 270px;
+      }
+
+      .app-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .sidebar-brand-text,
+      .nav-category,
+      .nav-btn span,
+      .user-info,
+      .user-logout-btn {
+        display: block;
+      }
+
+      .nav-btn {
+        justify-content: flex-start;
+        padding: 10px 14px;
+      }
+
+      .app-main {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .app-topbar {
+        padding: 0 18px;
+      }
+
+      .topbar-user-meta {
+        display: none;
+      }
+
+      .content-canvas {
+        padding: 20px 16px;
+      }
+
+      .login-card {
+        padding: 32px 22px;
+      }
+
+      .system-status-pill {
+        display: none; /* preserve space on ultra-small viewports */
+      }
+    }
+
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       LOGIN SCREEN (AUTOMATIC ROLE DETECTION ENGINE)
+       ========================================================================= -->
+  <section class="login-viewport" id="login-viewport">
+    <div class="login-card">
+      <div class="brand-mark">
+        <div class="brand-crest">B</div>
+        <div>
+          <div class="brand-title">BrainzOS</div>
+          <div class="brand-tagline">Institutional Operating System</div>
+        </div>
+      </div>
+
+      <h1 class="login-heading">Welcome back.</h1>
+      <p class="login-description">
+        Access your academic and administrative workspace. Your institutional role is live-detected from your school identity.
+      </p>
+
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="school-email">What's your school email?</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <i data-lucide="mail" style="width: 18px; height: 18px;"></i>
+            </span>
+            <input 
+              id="school-email" 
+              type="email" 
+              placeholder="e.g., student@brainz.edu" 
+              autocomplete="email"
+              required 
+            />
+          </div>
+        </div>
+
+        <!-- Live Role Detection Animated Banner -->
+        <div class="role-detection-box" id="role-detector-box">
+          <span class="detection-label">Role Detected</span>
+          <span class="detection-result" id="role-detector-text">
+            <span class="role-dot"></span>
+            <span>Awaiting school email…</span>
+          </span>
+        </div>
+
+        <button type="submit" class="btn-primary" id="continue-btn" disabled>
+          <span>Continue to BrainzOS</span>
+          <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
+        </button>
+
+        <button type="button" class="btn-secondary" id="biometric-btn" onclick="startBiometricLogin()">
+          <i data-lucide="fingerprint" style="width: 18px; height: 18px;"></i>
+          <span>Sign in with biometrics</span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Protected institutional gateway · CBSE Senior Secondary Curriculum<br />
+        Brainz Academic Computing Cluster
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       MAIN OS APP SHELL (POST-LOGIN WORKSPACE)
+       ========================================================================= -->
+  <div class="app-viewport" id="app-viewport">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="sidebar-crest">B</div>
+          <div class="sidebar-brand-text">
+            <strong>BrainzOS</strong>
+            <small>School OS</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamically Populated Role Nav List -->
+      <nav class="sidebar-nav" id="sidebar-nav-container">
+        <!-- Rendered by renderSidebarNav() based on active role -->
+      </nav>
+
+      <!-- Pinned Bottom User Badge -->
+      <div class="sidebar-footer">
+        <div class="user-profile-card">
+          <div class="user-avatar" id="sidebar-user-avatar">IK</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebar-user-name">Ishaan Kalra</div>
+            <div class="user-role-badge" id="sidebar-user-badge">Student</div>
+          </div>
+          <button class="user-logout-btn" title="Sign out" onclick="logoutUser()">
+            <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <div class="app-main">
+      
+      <!-- Topbar Header -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+          </button>
+          
+          <div class="global-search-container" onclick="openCommandLauncher()">
+            <i data-lucide="search" class="global-search-icon"></i>
+            <input 
+              type="text" 
+              class="global-search-input" 
+              placeholder="Search BrainzOS…" 
+              readonly
+            />
+            <kbd class="global-search-kbd">⌘K</kbd>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Live Status Indicator with Pulsing Sage Beacon -->
+          <div class="system-status-pill">
+            <span class="status-beacon">
+              <span class="status-pulse"></span>
+              <span class="status-dot"></span>
+            </span>
+            <span>LIVE · CBSE Senior Secondary</span>
+          </div>
+
+          <!-- Topbar Profile Pill -->
+          <div class="topbar-user">
+            <div class="topbar-user-meta">
+              <div class="topbar-user-name" id="topbar-user-name">Ishaan Kalra</div>
+              <div class="topbar-user-role" id="topbar-user-role">Student</div>
+            </div>
+            <div class="user-avatar" id="topbar-user-avatar">IK</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Center Canvas Content Area -->
+      <main class="content-canvas" id="content-canvas">
+
+        <!-- ===================================================================
+             EMPTY STATE / PLACEHOLDER VIEW (Active when no role pages are loaded)
+             =================================================================== -->
+        <section id="os-shell-welcome" class="os-page active">
+          <div class="placeholder-container">
+            <div class="placeholder-badge">
+              <span class="badge badge-blue">Foundation Shell Loaded</span>
+            </div>
+            <h2 id="welcome-heading" style="margin-bottom: 12px;">Welcome to BrainzOS</h2>
+            <p id="welcome-subtext" style="max-width: 640px; margin: 0 auto 24px; font-size: 15px;">
+              The foundation operating system shell is live. Three role-specific agents will build and inject the dedicated dashboards, analytics, and tool suites into their respective markers.
+            </p>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-secondary" style="width: auto;" onclick="openCommandLauncher()">
+                <i data-lucide="terminal" style="width: 16px; height: 16px;"></i>
+                <span>Open Command Palette (⌘K)</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             ROLE PAGE EXTENSION CONTAINERS
+             Subsequent agents: Inject your page markup between the markers below.
+             Each view must have class="os-page" and a unique id="...".
+             =================================================================== -->
+
+        <!-- STUDENT_PAGES_START -->
+        <!-- 
+          Student agent: Inject Student role pages below.
+          Example:
+          <section id="page-student-overview" class="os-page">
+            <div class="card">Student Dashboard Content</div>
+          </section>
+        -->
+        <!-- STUDENT_PAGES_END -->
+
+        <!-- TEACHER_PAGES_START -->
+        <!-- 
+          Teacher agent: Inject Teacher role pages below.
+          Example:
+          <section id="page-teacher-classes" class="os-page">
+            <div class="card">Teacher Classroom Management Content</div>
+          </section>
+        -->
+        <!-- TEACHER_PAGES_END -->
+
+        <!-- DIRECTOR_PAGES_START -->
+        <!-- 
+          Director agent: Inject Director / Admin role pages below.
+          Example:
+          <section id="page-director-analytics" class="os-page">
+            <div class="card">Institutional Performance Content</div>
+          </section>
+        -->
+        <!-- DIRECTOR_PAGES_END -->
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       COMMAND LAUNCHER PALETTE (⌘K / Ctrl+K)
+       ========================================================================= -->
+  <div class="cmd-overlay" id="cmd-overlay" onclick="handleCmdOverlayClick(event)">
+    <div class="cmd-palette" id="cmd-palette">
+      <div class="cmd-search-row">
+        <i data-lucide="search" style="width: 18px; height: 18px; color: var(--color-ink-subtle);"></i>
+        <input 
+          type="text" 
+          id="cmd-input" 
+          class="cmd-search-input" 
+          placeholder="Type a page name, destination, or command…" 
+          autocomplete="off"
+        />
+        <kbd class="cmd-kbd-badge">ESC</kbd>
+      </div>
+
+      <div class="cmd-results" id="cmd-results-list">
+        <!-- Rendered dynamically from current role's navigable pages -->
+      </div>
+
+      <div class="cmd-footer">
+        <div class="cmd-hints">
+          <span><kbd class="cmd-kbd-badge">↑</kbd> <kbd class="cmd-kbd-badge">↓</kbd> Navigate</span>
+          <span><kbd class="cmd-kbd-badge">↵</kbd> Select</span>
+        </div>
+        <span>BrainzOS Core Shell</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       BIOMETRIC AUTHENTICATION SIMULATOR MODAL
+       ========================================================================= -->
+  <div class="biometric-overlay" id="biometric-overlay">
+    <div class="biometric-modal">
+      <div class="bio-sensor-ring" id="bio-sensor-ring">
+        <div class="bio-laser-beam" id="bio-laser"></div>
+        <i data-lucide="fingerprint" class="bio-icon" id="bio-icon-scan"></i>
+        <i data-lucide="check-circle-2" class="bio-success-icon" id="bio-icon-check"></i>
+      </div>
+      <h3 class="bio-status-title" id="bio-status-title">Institutional Biometrics</h3>
+      <p class="bio-status-desc" id="bio-status-desc">Scanning registered hardware key & credentials…</p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       FOUNDATION JAVASCRIPT STATE ENGINE & EXTENSION APIS
+       ========================================================================= -->
+  <script>
+    /* =========================================================================
+       1. GLOBAL STATE OBJECT
+       ========================================================================= */
+    const STATE = {
+      currentUser: null,       // Set on login: { name, email, role, roleLabel, initials }
+      currentPage: 'os-shell-welcome', // Active page ID
+      cmdSelectedIndex: 0,     // Keyboard navigation index in command launcher
+      isSidebarOpenMobile: false,
+    };
+
+    /* =========================================================================
+       2. ROLE NAVIGATION REGISTRY (EXTENSION POINT FOR FUTURE AGENTS)
+       Other agents: Simply push your pages and nav items into the respective
+       array below. The sidebar and ⌘K launcher will automatically reflect them!
+       ========================================================================= */
+    const ROLE_NAV_CONFIG = {
+      // -----------------------------------------------------------------------
+      // STUDENT ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      student: [
+        /* <!-- STUDENT_NAV_START --> */
+        // Examples for student agent to extend:
+        // { id: 'student-overview', label: 'Overview', icon: 'layout-dashboard', pageId: 'page-student-overview' },
+        // { id: 'student-timetable', label: 'Schedule & Periods', icon: 'calendar', pageId: 'page-student-timetable' },
+        // { id: 'student-assignments', label: 'Assignments', icon: 'file-text', pageId: 'page-student-assignments' },
+        /* <!-- STUDENT_NAV_END --> */
+      ],
+
+      // -----------------------------------------------------------------------
+      // TEACHER ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      teacher: [
+        /* <!-- TEACHER_NAV_START --> */
+        // Examples for teacher agent to extend:
+        // { id: 'teacher-classes', label: 'My Classrooms', icon: 'users', pageId: 'page-teacher-classes' },
+        // { id: 'teacher-gradebook', label: 'Gradebook', icon: 'clipboard-check', pageId: 'page-teacher-gradebook' },
+        // { id: 'teacher-attendance', label: 'Attendance Roll', icon: 'check-square', pageId: 'page-teacher-attendance' },
+        /* <!-- TEACHER_NAV_END --> */
+      ],
+
+      // -----------------------------------------------------------------------
+      // DIRECTOR / ADMIN ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      director: [
+        /* <!-- DIRECTOR_NAV_START --> */
+        // Examples for director agent to extend:
+        // { id: 'director-analytics', label: 'Institutional Health', icon: 'activity', pageId: 'page-director-analytics' },
+        // { id: 'director-staff', label: 'Faculty Management', icon: 'briefcase', pageId: 'page-director-staff' },
+        // { id: 'director-audit', label: 'Regulatory & Audit', icon: 'shield-check', pageId: 'page-director-audit' },
+        /* <!-- DIRECTOR_NAV_END --> */
+      ]
+    };
+
+    /* Default Preset Demo Profiles */
+    const DEMO_PROFILES = {
+      student: {
+        name: 'Ishaan Kalra',
+        email: 'student@brainz.edu',
+        role: 'student',
+        roleLabel: 'Student',
+        initials: 'IK',
+        grade: 'Grade 12-A · CBSE Science'
+      },
+      teacher: {
+        name: 'Dr. Sarah Mitchell',
+        email: 'teacher@brainz.edu',
+        role: 'teacher',
+        roleLabel: 'Teacher',
+        initials: 'SM',
+        grade: 'Senior Faculty · Dept. of Physics'
+      },
+      director: {
+        name: 'Prof. Arvind Ramanathan',
+        email: 'director@brainz.edu',
+        role: 'director',
+        roleLabel: 'Director / Admin',
+        initials: 'AR',
+        grade: 'Institutional Directorate'
+      }
+    };
+
+    /* =========================================================================
+       3. LIVE EMAIL ROLE DETECTION
+       ========================================================================= */
+    const emailInput = document.getElementById('school-email');
+    const detectorBox = document.getElementById('role-detector-box');
+    const detectorText = document.getElementById('role-detector-text');
+    const continueBtn = document.getElementById('continue-btn');
+
+    /**
+     * Determines role strictly based on email string.
+     * Rules:
+     * - student@ or contains student -> 'student'
+     * - teacher@ or contains teacher/faculty -> 'teacher'
+     * - director@ or admin@ or contains director/admin -> 'director'
+     */
+    function detectRoleFromEmail(emailStr) {
+      const normalized = (emailStr || '').trim().toLowerCase();
+      if (!normalized) return null;
+
+      if (normalized.includes('student')) {
+        return 'student';
+      }
+      if (normalized.includes('teacher') || normalized.includes('faculty')) {
+        return 'teacher';
+      }
+      if (normalized.includes('director') || normalized.includes('admin') || normalized.includes('head')) {
+        return 'director';
+      }
+      return null;
+    }
+
+    // Attach input event listener for live responsive role detection
+    emailInput.addEventListener('input', (e) => {
+      const detectedRole = detectRoleFromEmail(e.target.value);
+      updateRoleIndicatorUI(detectedRole);
+    });
+
+    function updateRoleIndicatorUI(role) {
+      detectorText.className = 'detection-result';
+
+      if (!role) {
+        detectorBox.classList.remove('detected');
+        detectorText.innerHTML = '<span class="role-dot"></span><span>Awaiting school email…</span>';
+        continueBtn.disabled = true;
+        return;
+      }
+
+      detectorBox.classList.add('detected');
+      continueBtn.disabled = false;
+
+      if (role === 'student') {
+        detectorText.classList.add('active', 'student');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Student</strong>';
+      } else if (role === 'teacher') {
+        detectorText.classList.add('active', 'teacher');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Teacher</strong>';
+      } else if (role === 'director') {
+        detectorText.classList.add('active', 'director');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Director / Admin</strong>';
+      }
+    }
+
+    /* =========================================================================
+       4. AUTHENTICATION & LOGIN WORKFLOW
+       ========================================================================= */
+    function handleLoginSubmit(event) {
+      if (event) event.preventDefault();
+
+      const emailVal = emailInput.value.trim();
+      const detectedRole = detectRoleFromEmail(emailVal);
+
+      if (!detectedRole) {
+        alert('Please enter a valid school email containing student, teacher, or director/admin.');
+        return;
+      }
+
+      // Build or retrieve user session
+      let user = DEMO_PROFILES[detectedRole];
+      if (emailVal.toLowerCase() !== user.email) {
+        // Derive name from custom email
+        const localPart = emailVal.split('@')[0].replace(/[._-]/g, ' ');
+        const formattedName = localPart
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+        
+        user = {
+          name: formattedName || user.name,
+          email: emailVal,
+          role: detectedRole,
+          roleLabel: detectedRole === 'director' ? 'Director / Admin' : (detectedRole.charAt(0).toUpperCase() + detectedRole.slice(1)),
+          initials: (formattedName || user.name).split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        };
+      }
+
+      executeLogin(user);
+    }
+
+    function executeLogin(userObj) {
+      STATE.currentUser = userObj;
+
+      // Update sidebar and topbar user credentials
+      document.getElementById('sidebar-user-name').textContent = userObj.name;
+      document.getElementById('sidebar-user-badge').textContent = userObj.roleLabel;
+      document.getElementById('sidebar-user-avatar').textContent = userObj.initials;
+
+      document.getElementById('topbar-user-name').textContent = userObj.name;
+      document.getElementById('topbar-user-role').textContent = userObj.roleLabel;
+      document.getElementById('topbar-user-avatar').textContent = userObj.initials;
+
+      // Update welcome view heading
+      document.getElementById('welcome-heading').textContent = `Welcome, ${userObj.name}`;
+      document.getElementById('welcome-subtext').textContent = `Operating workspace initialized for ${userObj.roleLabel}. Modules registered for your academic tier will populate here.`;
+
+      // Hide login, show app shell
+      document.getElementById('login-viewport').classList.add('hidden-view');
+      document.getElementById('app-viewport').classList.add('active-view');
+
+      // Build sidebar navigation for this role
+      renderSidebarNav();
+
+      // Ensure Lucide icons are initialized
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+
+      // Navigate to the first available page for this role if any, or shell welcome
+      const roleNavs = ROLE_NAV_CONFIG[userObj.role] || [];
+      if (roleNavs.length > 0 && document.getElementById(roleNavs[0].pageId)) {
+        navigateTo(roleNavs[0].pageId);
+      } else {
+        navigateTo('os-shell-welcome');
+      }
+    }
+
+    /**
+     * Demo Biometric Scanner Simulation
+     */
+    function startBiometricLogin() {
+      const bioOverlay = document.getElementById('biometric-overlay');
+      const bioLaser = document.getElementById('bio-laser');
+      const iconScan = document.getElementById('bio-icon-scan');
+      const iconCheck = document.getElementById('bio-icon-check');
+      const statusTitle = document.getElementById('bio-status-title');
+      const statusDesc = document.getElementById('bio-status-desc');
+
+      // Reset modal visuals
+      bioLaser.style.display = 'block';
+      iconScan.style.display = 'block';
+      iconCheck.style.display = 'none';
+      statusTitle.textContent = 'Institutional Biometrics';
+      statusDesc.textContent = 'Scanning registered hardware key & credentials…';
+      bioOverlay.classList.add('active');
+
+      if (window.lucide) lucide.createIcons();
+
+      // Simulate biometric validation delay
+      setTimeout(() => {
+        bioLaser.style.display = 'none';
+        iconScan.style.display = 'none';
+        iconCheck.style.display = 'block';
+        statusTitle.textContent = 'Identity Verified';
+        statusDesc.textContent = 'Logging in as Demo Student (Ishaan Kalra)…';
+        if (window.lucide) lucide.createIcons();
+
+        setTimeout(() => {
+          bioOverlay.classList.remove('active');
+          executeLogin(DEMO_PROFILES.student);
+        }, 600);
+      }, 1200);
+    }
+
+    function logoutUser() {
+      STATE.currentUser = null;
+      STATE.currentPage = 'os-shell-welcome';
+
+      // Reset form
+      emailInput.value = '';
+      updateRoleIndicatorUI(null);
+
+      // Swap views
+      document.getElementById('app-viewport').classList.remove('active-view');
+      document.getElementById('login-viewport').classList.remove('hidden-view');
+    }
+
+    /* =========================================================================
+       5. PAGE NAVIGATION ROUTER (NO RELOAD, VANILLA JS STATE)
+       ========================================================================= */
+    /**
+     * Primary function for switching pages within BrainzOS.
+     * Exposed globally so all subsequent role agents can call it freely.
+     * @param {string} pageId - The ID of the target page container.
+     */
+    function navigateTo(pageId) {
+      const targetEl = document.getElementById(pageId);
+
+      // Hide all pages
+      const allPages = document.querySelectorAll('.os-page');
+      allPages.forEach(p => p.classList.remove('active'));
+
+      // If page exists, show it; otherwise fallback to the shell welcome placeholder
+      if (targetEl) {
+        targetEl.classList.add('active');
+        STATE.currentPage = pageId;
+      } else {
+        const welcomeEl = document.getElementById('os-shell-welcome');
+        if (welcomeEl) welcomeEl.classList.add('active');
+        STATE.currentPage = 'os-shell-welcome';
+      }
+
+      // Update sidebar nav active state
+      const navButtons = document.querySelectorAll('.nav-btn');
+      navButtons.forEach(btn => {
+        if (btn.getAttribute('data-page-id') === pageId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Close mobile drawer if open
+      if (STATE.isSidebarOpenMobile) {
+        toggleMobileSidebar(false);
+      }
+
+      // Scroll top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Refresh icons in case new DOM elements are visible
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    /* =========================================================================
+       6. SIDEBAR NAVIGATION GENERATOR
+       ========================================================================= */
+    function renderSidebarNav() {
+      const navContainer = document.getElementById('sidebar-nav-container');
+      navContainer.innerHTML = '';
+
+      if (!STATE.currentUser) return;
+
+      const role = STATE.currentUser.role;
+      const navList = ROLE_NAV_CONFIG[role] || [];
+
+      // Category Heading
+      const catHeading = document.createElement('div');
+      catHeading.className = 'nav-category';
+      catHeading.textContent = `${STATE.currentUser.roleLabel} Modules`;
+      navContainer.appendChild(catHeading);
+
+      if (navList.length === 0) {
+        const emptyNotice = document.createElement('div');
+        emptyNotice.style.padding = '12px 14px';
+        emptyNotice.style.fontSize = '12px';
+        emptyNotice.style.color = 'var(--color-ink-subtle)';
+        emptyNotice.style.fontStyle = 'italic';
+        emptyNotice.textContent = 'Nav items will be registered by role agent.';
+        navContainer.appendChild(emptyNotice);
+      } else {
+        navList.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'nav-btn';
+          btn.setAttribute('data-page-id', item.pageId);
+          btn.onclick = () => navigateTo(item.pageId);
+
+          btn.innerHTML = `
+            <i data-lucide="${item.icon || 'circle'}"></i>
+            <span>${item.label}</span>
+          `;
+          navContainer.appendChild(btn);
+        });
+      }
+
+      // Utility / Shell Overview link
+      const systemCategory = document.createElement('div');
+      systemCategory.className = 'nav-category';
+      systemCategory.style.marginTop = '16px';
+      systemCategory.textContent = 'System';
+      navContainer.appendChild(systemCategory);
+
+      const overviewBtn = document.createElement('button');
+      overviewBtn.className = 'nav-btn';
+      overviewBtn.setAttribute('data-page-id', 'os-shell-welcome');
+      overviewBtn.onclick = () => navigateTo('os-shell-welcome');
+      overviewBtn.innerHTML = `
+        <i data-lucide="info"></i>
+        <span>System Status</span>
+      `;
+      navContainer.appendChild(overviewBtn);
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function toggleMobileSidebar(forceState) {
+      const sidebar = document.getElementById('app-sidebar');
+      if (typeof forceState === 'boolean') {
+        STATE.isSidebarOpenMobile = forceState;
+      } else {
+        STATE.isSidebarOpenMobile = !STATE.isSidebarOpenMobile;
+      }
+
+      if (STATE.isSidebarOpenMobile) {
+        sidebar.classList.add('mobile-open');
+      } else {
+        sidebar.classList.remove('mobile-open');
+      }
+    }
+
+    /* =========================================================================
+       7. COMMAND LAUNCHER ENGINE (⌘K / Ctrl+K)
+       ========================================================================= */
+    const cmdOverlay = document.getElementById('cmd-overlay');
+    const cmdInput = document.getElementById('cmd-input');
+    const cmdResultsList = document.getElementById('cmd-results-list');
+
+    function openCommandLauncher() {
+      if (!STATE.currentUser) return;
+      cmdOverlay.classList.add('active');
+      cmdInput.value = '';
+      STATE.cmdSelectedIndex = 0;
+      filterCommandResults('');
+      setTimeout(() => cmdInput.focus(), 50);
+    }
+
+    function closeCommandLauncher() {
+      cmdOverlay.classList.remove('active');
+      cmdInput.blur();
+    }
+
+    function handleCmdOverlayClick(e) {
+      if (e.target === cmdOverlay) {
+        closeCommandLauncher();
+      }
+    }
+
+    // Global Keyboard Shortcuts (⌘K, Ctrl+K, Escape)
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (cmdOverlay.classList.contains('active')) {
+          closeCommandLauncher();
+        } else {
+          openCommandLauncher();
+        }
+      } else if (e.key === 'Escape' && cmdOverlay.classList.contains('active')) {
+        closeCommandLauncher();
+      }
+    });
+
+    // Command palette arrow-key and enter navigation
+    cmdInput.addEventListener('keydown', (e) => {
+      const items = cmdResultsList.querySelectorAll('.cmd-item');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        STATE.cmdSelectedIndex = (STATE.cmdSelectedIndex + 1) % items.length;
+        highlightCmdItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        STATE.cmdSelectedIndex = (STATE.cmdSelectedIndex - 1 + items.length) % items.length;
+        highlightCmdItem(items);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const selected = items[STATE.cmdSelectedIndex];
+        if (selected) {
+          selected.click();
+        }
+      }
+    });
+
+    function highlightCmdItem(items) {
+      items.forEach((it, idx) => {
+        if (idx === STATE.cmdSelectedIndex) {
+          it.classList.add('selected');
+          it.scrollIntoView({ block: 'nearest' });
+        } else {
+          it.classList.remove('selected');
+        }
+      });
+    }
+
+    cmdInput.addEventListener('input', (e) => {
+      STATE.cmdSelectedIndex = 0;
+      filterCommandResults(e.target.value);
+    });
+
+    function filterCommandResults(query) {
+      cmdResultsList.innerHTML = '';
+      const q = query.trim().toLowerCase();
+
+      if (!STATE.currentUser) return;
+
+      const role = STATE.currentUser.role;
+      const roleNavs = ROLE_NAV_CONFIG[role] || [];
+
+      // Combine role pages and system actions
+      const allActions = [
+        ...roleNavs.map(item => ({
+          label: item.label,
+          group: `${STATE.currentUser.roleLabel} Navigation`,
+          icon: item.icon || 'arrow-right',
+          action: () => navigateTo(item.pageId)
+        })),
+        {
+          label: 'System Status & Shell Overview',
+          group: 'Core System',
+          icon: 'info',
+          action: () => navigateTo('os-shell-welcome')
+        },
+        {
+          label: 'Sign Out / Lock Session',
+          group: 'Session',
+          icon: 'log-out',
+          action: () => {
+            closeCommandLauncher();
+            logoutUser();
+          }
+        }
+      ];
+
+      const filtered = allActions.filter(item => 
+        item.label.toLowerCase().includes(q) || 
+        item.group.toLowerCase().includes(q)
+      );
+
+      if (filtered.length === 0) {
+        cmdResultsList.innerHTML = `
+          <div class="cmd-empty">
+            No matching destinations or commands found for "${query}".
+          </div>
+        `;
+        return;
+      }
+
+      let currentGroup = '';
+      filtered.forEach((item, index) => {
+        if (item.group !== currentGroup) {
+          currentGroup = item.group;
+          const groupTitle = document.createElement('div');
+          groupTitle.className = 'cmd-group-title';
+          groupTitle.textContent = currentGroup;
+          cmdResultsList.appendChild(groupTitle);
+        }
+
+        const row = document.createElement('div');
+        row.className = `cmd-item ${index === 0 ? 'selected' : ''}`;
+        row.innerHTML = `
+          <div class="cmd-item-left">
+            <i data-lucide="${item.icon}"></i>
+            <span>${item.label}</span>
+          </div>
+          <span class="cmd-kbd-badge">Jump</span>
+        `;
+        row.onclick = () => {
+          item.action();
+          closeCommandLauncher();
+        };
+        cmdResultsList.appendChild(row);
+      });
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    /* =========================================================================
+       8. INITIALIZATION
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Initialize icons on load
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>

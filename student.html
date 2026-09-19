@@ -1,0 +1,4456 @@
+<!--
+========================================================================================
+BRAINZOS — FOUNDATION OPERATING SYSTEM SHELL
+An operating system for an entire school.
+========================================================================================
+DEMO TESTER CREDENTIALS (ROLE DETECTION ONLY — NEVER EXPOSE ROLE SWITCH IN UI):
+  • Student:  student@brainz.edu  (e.g., ishaan.student@brainz.edu)
+  • Teacher:  teacher@brainz.edu  (e.g., sarah.teacher@brainz.edu)
+  • Director: director@brainz.edu (or admin@brainz.edu)
+========================================================================================
+NOTE FOR EXTENDING AGENTS:
+  1. Insert student page views inside <!-- STUDENT_PAGES_START --> ... <!-- STUDENT_PAGES_END -->
+  2. Insert teacher page views inside <!-- TEACHER_PAGES_START --> ... <!-- TEACHER_PAGES_END -->
+  3. Insert director page views inside <!-- DIRECTOR_PAGES_START --> ... <!-- DIRECTOR_PAGES_END -->
+  4. Register role navigation items inside ROLE_NAV_CONFIG in the <script> block.
+  5. Use navigateTo('page-id') to switch views.
+========================================================================================
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrainzOS — Student Workspace (Ishaan Kalra · Class XI-B)</title>
+
+  <!-- Typography: Newsreader (Refined Academic Serif) + Plus Jakarta Sans (Clean Grotesk) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Line Icons CDN (Clean, consistent stroke line icons) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    /* =========================================================================
+       1. DESIGN SYSTEM TOKENS
+       ========================================================================= */
+    :root {
+      /* Required Brand Colors */
+      --color-blue: #6A8EAE;        /* Primary interactive & focus */
+      --color-beige: #D4C9B7;       /* Secondary highlights & warm borders */
+      --color-cream: #F8F4ED;       /* Main application background */
+      --color-sage: #9EBBAF;        /* Positive / live status indicator */
+
+      /* Supporting Refined Institutional Palette */
+      --color-ink: #1C232B;         /* Deep academic slate for primary text */
+      --color-ink-muted: #5C6773;   /* Secondary muted slate */
+      --color-ink-subtle: #8C97A4;  /* Tertiary subtle slate */
+      --color-surface-white: #FFFFFF;
+      --color-surface-cream: #FAF7F2;
+      --color-border: rgba(106, 142, 174, 0.16);
+      --color-border-subtle: rgba(28, 35, 43, 0.08);
+      --color-border-warm: rgba(212, 201, 183, 0.45);
+      
+      /* Glassmorphic Surfaces (used intentionally and sparingly) */
+      --glass-bg: rgba(255, 255, 255, 0.78);
+      --glass-bg-subtle: rgba(248, 244, 237, 0.72);
+      --glass-border: rgba(255, 255, 255, 0.65);
+      --glass-blur: blur(16px);
+      
+      /* Typography */
+      --font-heading: "Newsreader", "Iowan Old Style", "Palatino Linotype", "URW Palladio L", P052, Georgia, serif;
+      --font-body: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      
+      /* Type Scale */
+      --text-xs: 0.75rem;    /* 12px */
+      --text-sm: 0.844rem;   /* 13.5px */
+      --text-base: 0.938rem; /* 15px */
+      --text-md: 1.063rem;   /* 17px */
+      --text-lg: 1.25rem;    /* 20px */
+      --text-xl: 1.5rem;     /* 24px */
+      --text-2xl: 1.875rem;  /* 30px */
+      --text-3xl: 2.375rem;  /* 38px */
+      --text-4xl: 3.125rem;  /* 50px */
+
+      /* Elevations & Radii */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --radius-full: 9999px;
+
+      --shadow-subtle: 0 1px 3px rgba(28, 35, 43, 0.04), 0 4px 12px rgba(28, 35, 43, 0.02);
+      --shadow-raised: 0 4px 20px -2px rgba(28, 35, 43, 0.06), 0 2px 6px -1px rgba(28, 35, 43, 0.03);
+      --shadow-floating: 0 16px 48px -8px rgba(28, 35, 43, 0.12), 0 4px 12px rgba(28, 35, 43, 0.04);
+
+      /* Motion & Physics */
+      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration-quick: 180ms;
+      --duration-normal: 260ms;
+
+      /* Layout Dimensions */
+      --sidebar-width: 264px;
+      --sidebar-collapsed-width: 76px;
+      --topbar-height: 68px;
+    }
+
+    /* =========================================================================
+       2. BASE RESET & NORMALIZATION
+       ========================================================================= */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      min-height: 100%;
+      background-color: var(--color-cream);
+      color: var(--color-ink);
+      font-family: var(--font-body);
+      font-size: 15px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    /* Subtle architectural paper texture gradient */
+    body {
+      background-image: 
+        radial-gradient(ellipse at 10% 0%, rgba(212, 201, 183, 0.18) 0%, transparent 45%),
+        radial-gradient(ellipse at 90% 100%, rgba(158, 187, 175, 0.15) 0%, transparent 50%),
+        radial-gradient(ellipse at 85% 15%, rgba(106, 142, 174, 0.12) 0%, transparent 40%);
+      background-attachment: fixed;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      background: none;
+      outline: none;
+    }
+
+    input {
+      outline: none;
+      border: 1px solid var(--color-border);
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* Accessible focus state */
+    :focus-visible {
+      outline: 2px solid var(--color-blue);
+      outline-offset: 2px;
+    }
+
+    /* =========================================================================
+       3. REFINED TYPOGRAPHIC SCALE
+       ========================================================================= */
+    h1, h2, h3, h4, .font-heading {
+      font-family: var(--font-heading);
+      color: var(--color-ink);
+      font-weight: 500;
+      letter-spacing: -0.022em;
+      line-height: 1.15;
+    }
+
+    h1 { font-size: var(--text-3xl); font-weight: 600; }
+    h2 { font-size: var(--text-2xl); font-weight: 500; }
+    h3 { font-size: var(--text-xl); font-weight: 500; }
+    h4 { font-size: var(--text-lg); font-weight: 500; }
+
+    p {
+      color: var(--color-ink-muted);
+    }
+
+    .subtext {
+      font-size: var(--text-sm);
+      color: var(--color-ink-subtle);
+    }
+
+    /* =========================================================================
+       4. ELEVATION CARDS & UTILITY CLASSES
+       ========================================================================= */
+    .card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-raised);
+      transition: box-shadow var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .card-flat {
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--color-border-subtle);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .card-elevated {
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      box-shadow: var(--shadow-floating);
+    }
+
+    /* Table Container Utility (overflow-x safe for mobile) */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border-subtle);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .table-container table {
+      width: 100%;
+      min-width: 560px;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .table-container th {
+      padding: 14px 18px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      border-bottom: 1px solid var(--color-border-subtle);
+      background: rgba(248, 244, 237, 0.5);
+    }
+
+    .table-container td {
+      padding: 14px 18px;
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-blue {
+      background: rgba(106, 142, 174, 0.14);
+      color: #3f607c;
+      border: 1px solid rgba(106, 142, 174, 0.28);
+    }
+
+    .badge-sage {
+      background: rgba(158, 187, 175, 0.22);
+      color: #436959;
+      border: 1px solid rgba(158, 187, 175, 0.4);
+    }
+
+    .badge-beige {
+      background: rgba(212, 201, 183, 0.28);
+      color: #695e4d;
+      border: 1px solid rgba(212, 201, 183, 0.5);
+    }
+
+    /* =========================================================================
+       5. LOGIN EXPERIENCE & ROLE DETECTOR
+       ========================================================================= */
+    .login-viewport {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      position: relative;
+      z-index: 10;
+      transition: opacity var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .login-viewport.hidden-view {
+      display: none !important;
+    }
+
+    .login-card {
+      width: 100%;
+      max-width: 470px;
+      padding: 44px 38px;
+      border-radius: var(--radius-xl);
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-floating);
+      position: relative;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--color-beige), transparent);
+    }
+
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .brand-crest {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: var(--color-ink);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 600;
+      font-size: 1.35rem;
+      border: 1px solid rgba(212, 201, 183, 0.35);
+      box-shadow: 0 4px 14px rgba(28, 35, 43, 0.12);
+    }
+
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-ink);
+      line-height: 1.1;
+    }
+
+    .brand-tagline {
+      font-size: 0.688rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-top: 3px;
+    }
+
+    .login-heading {
+      font-size: 2rem;
+      margin-bottom: 8px;
+      letter-spacing: -0.025em;
+    }
+
+    .login-description {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+      margin-bottom: 26px;
+      line-height: 1.5;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-bottom: 8px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper .input-icon {
+      position: absolute;
+      left: 16px;
+      color: var(--color-ink-subtle);
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-wrapper input {
+      width: 100%;
+      padding: 14px 16px 14px 46px;
+      background: rgba(248, 244, 237, 0.65);
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-md);
+      font-size: var(--text-base);
+      color: var(--color-ink);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .input-wrapper input:focus {
+      background: #FFFFFF;
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 4px rgba(106, 142, 174, 0.15);
+    }
+
+    /* Live Detected Role Indicator Pill */
+    .role-detection-box {
+      margin: 14px 0 22px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(248, 244, 237, 0.7);
+      border: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 42px;
+      transition: all var(--duration-normal) var(--ease-spring);
+    }
+
+    .role-detection-box.detected {
+      background: rgba(255, 255, 255, 0.95);
+      border-color: var(--color-blue);
+      box-shadow: 0 4px 16px rgba(106, 142, 174, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .detection-label {
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+    }
+
+    .detection-result {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      opacity: 0.8;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .detection-result.active {
+      color: var(--color-ink);
+      opacity: 1;
+      animation: roleEntrance 300ms var(--ease-spring);
+    }
+
+    .role-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--color-ink-subtle);
+      transition: background-color var(--duration-quick) ease;
+    }
+
+    .detection-result.student .role-dot { background: var(--color-blue); }
+    .detection-result.teacher .role-dot { background: var(--color-sage); }
+    .detection-result.director .role-dot { background: #8E7C68; }
+
+    @keyframes roleEntrance {
+      0% { transform: scale(0.92); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Buttons */
+    .btn-primary {
+      width: 100%;
+      padding: 14px 20px;
+      background: var(--color-blue);
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: var(--text-base);
+      letter-spacing: -0.01em;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 4px 14px rgba(106, 142, 174, 0.35);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #5A7E9E;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(106, 142, 174, 0.42);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      margin-top: 10px;
+      padding: 12px 18px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-md);
+      color: var(--color-ink);
+      font-weight: 500;
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .btn-secondary:hover {
+      background: #FFFFFF;
+      border-color: var(--color-beige);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-subtle);
+    }
+
+    .auth-footer {
+      margin-top: 24px;
+      text-align: center;
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+      line-height: 1.6;
+    }
+
+    /* =========================================================================
+       6. APP SHELL LAYOUT
+       ========================================================================= */
+    .app-viewport {
+      display: none;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .app-viewport.active-view {
+      display: block;
+      animation: shellFadeIn 320ms var(--ease-spring);
+    }
+
+    @keyframes shellFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Left Sidebar */
+    .app-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-width);
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-right: 1px solid var(--color-border);
+      display: flex;
+      flex-direction: column;
+      z-index: 50;
+      transition: width var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .sidebar-header {
+      height: var(--topbar-height);
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-subtle);
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .sidebar-crest {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: var(--color-ink);
+      color: var(--color-cream);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .sidebar-brand-text {
+      line-height: 1.15;
+    }
+
+    .sidebar-brand-text strong {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--color-ink);
+    }
+
+    .sidebar-brand-text small {
+      display: block;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+    }
+
+    /* Navigation items container */
+    .sidebar-nav {
+      flex: 1;
+      padding: 20px 14px;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .nav-category {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      padding: 12px 12px 6px;
+    }
+
+    .nav-btn {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      color: var(--color-ink-muted);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      text-align: left;
+      transition: all var(--duration-quick) var(--ease-spring);
+      position: relative;
+    }
+
+    .nav-btn:hover {
+      background: rgba(106, 142, 174, 0.08);
+      color: var(--color-ink);
+    }
+
+    .nav-btn.active {
+      background: rgba(106, 142, 174, 0.14);
+      color: var(--color-ink);
+      font-weight: 600;
+    }
+
+    .nav-btn.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3px;
+      background: var(--color-blue);
+      border-radius: 0 3px 3px 0;
+    }
+
+    .nav-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 1.8px;
+      flex-shrink: 0;
+      color: inherit;
+    }
+
+    /* Pinned Bottom User Badge */
+    .sidebar-footer {
+      padding: 14px;
+      border-top: 1px solid var(--color-border-subtle);
+      background: rgba(250, 247, 242, 0.6);
+    }
+
+    .user-profile-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--color-border-subtle);
+      transition: background var(--duration-quick) ease;
+    }
+
+    .user-profile-card:hover {
+      background: #FFFFFF;
+    }
+
+    .user-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: var(--color-blue);
+      color: #FFFFFF;
+      font-weight: 600;
+      font-size: var(--text-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      letter-spacing: 0.02em;
+    }
+
+    .user-info {
+      flex: 1;
+      min-width: 0;
+      line-height: 1.25;
+    }
+
+    .user-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .user-role-badge {
+      display: inline-flex;
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--color-blue);
+      margin-top: 2px;
+    }
+
+    .user-logout-btn {
+      color: var(--color-ink-subtle);
+      padding: 6px;
+      border-radius: 6px;
+      transition: all var(--duration-quick) ease;
+    }
+
+    .user-logout-btn:hover {
+      color: #c94b4b;
+      background: rgba(201, 75, 75, 0.08);
+    }
+
+    /* Main Content Wrapper */
+    .app-main {
+      margin-left: var(--sidebar-width);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      transition: margin-left var(--duration-normal) var(--ease-spring);
+    }
+
+    /* Topbar Header */
+    .app-topbar {
+      height: var(--topbar-height);
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      background: rgba(248, 244, 237, 0.85);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      gap: 20px;
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex: 1;
+      max-width: 580px;
+    }
+
+    .mobile-menu-btn {
+      display: none;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      color: var(--color-ink);
+    }
+
+    /* Global Search with ⌘K Trigger */
+    .global-search-container {
+      position: relative;
+      width: 100%;
+      cursor: pointer;
+    }
+
+    .global-search-input {
+      width: 100%;
+      padding: 10px 48px 10px 38px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--color-border-warm);
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      box-shadow: var(--shadow-subtle);
+      transition: all var(--duration-quick) var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .global-search-input:focus {
+      background: #FFFFFF;
+      border-color: var(--color-blue);
+      box-shadow: 0 0 0 3px rgba(106, 142, 174, 0.16);
+    }
+
+    .global-search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-ink-subtle);
+      pointer-events: none;
+      width: 16px;
+      height: 16px;
+    }
+
+    .global-search-kbd {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-family: inherit;
+      font-size: 0.688rem;
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      background: var(--color-cream);
+      border: 1px solid var(--color-border);
+      padding: 2px 7px;
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* Topbar Right Items */
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    /* Sage Live Status Beacon */
+    .system-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      background: rgba(255, 255, 255, 0.75);
+      border: 1px solid var(--color-border-subtle);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      color: var(--color-ink);
+      white-space: nowrap;
+    }
+
+    .status-beacon {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 8px;
+      height: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--color-sage);
+    }
+
+    .status-pulse {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: var(--color-sage);
+      opacity: 0.7;
+      animation: sagePulse 2.4s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+    }
+
+    @keyframes sagePulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(2.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    /* Topbar User Profile */
+    .topbar-user {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-left: 8px;
+    }
+
+    .topbar-user-meta {
+      text-align: right;
+      line-height: 1.2;
+    }
+
+    .topbar-user-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .topbar-user-role {
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+    }
+
+    /* Content Canvas Area */
+    .content-canvas {
+      flex: 1;
+      padding: 36px 40px;
+      max-width: 1540px;
+      width: 100%;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Page View Containers */
+    .os-page {
+      display: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity var(--duration-normal) var(--ease-spring),
+                  transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .os-page.active {
+      display: block;
+      opacity: 1;
+      transform: translateY(0);
+      animation: pageTransitionIn 260ms var(--ease-spring);
+    }
+
+    @keyframes pageTransitionIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Placeholder Welcome View */
+    .placeholder-container {
+      border: 1px dashed var(--color-beige);
+      border-radius: var(--radius-xl);
+      padding: 60px 40px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.5);
+      backdrop-filter: blur(10px);
+    }
+
+    .placeholder-badge {
+      display: inline-flex;
+      margin-bottom: 16px;
+    }
+
+    /* =========================================================================
+       7. COMMAND LAUNCHER MODAL (⌘K / Ctrl+K)
+       ========================================================================= */
+    .cmd-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 35, 43, 0.45);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 12vh 20px 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-quick) var(--ease-smooth);
+    }
+
+    .cmd-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .cmd-palette {
+      width: 100%;
+      max-width: 580px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow-floating);
+      overflow: hidden;
+      transform: translateY(-8px) scale(0.98);
+      transition: transform var(--duration-quick) var(--ease-spring);
+    }
+
+    .cmd-overlay.active .cmd-palette {
+      transform: translateY(0) scale(1);
+    }
+
+    .cmd-search-row {
+      display: flex;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--color-border-subtle);
+      gap: 12px;
+    }
+
+    .cmd-search-input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-size: var(--text-base);
+      color: var(--color-ink);
+    }
+
+    .cmd-search-input:focus {
+      outline: none;
+      box-shadow: none;
+    }
+
+    .cmd-kbd-badge {
+      font-size: 0.688rem;
+      padding: 3px 6px;
+      border-radius: 5px;
+      background: var(--color-cream);
+      border: 1px solid var(--color-border-subtle);
+      color: var(--color-ink-subtle);
+    }
+
+    .cmd-results {
+      max-height: 340px;
+      overflow-y: auto;
+      padding: 10px;
+    }
+
+    .cmd-group-title {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      padding: 8px 12px 4px;
+    }
+
+    .cmd-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 11px 14px;
+      border-radius: var(--radius-md);
+      font-size: var(--text-sm);
+      color: var(--color-ink);
+      cursor: pointer;
+      transition: background var(--duration-quick) ease;
+    }
+
+    .cmd-item-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cmd-item svg {
+      width: 17px;
+      height: 17px;
+      color: var(--color-ink-muted);
+    }
+
+    .cmd-item:hover, .cmd-item.selected {
+      background: rgba(106, 142, 174, 0.12);
+      color: var(--color-ink);
+    }
+
+    .cmd-item:hover svg, .cmd-item.selected svg {
+      color: var(--color-blue);
+    }
+
+    .cmd-empty {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--color-ink-muted);
+      font-size: var(--text-sm);
+    }
+
+    .cmd-footer {
+      padding: 10px 18px;
+      background: var(--color-cream);
+      border-top: 1px solid var(--color-border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+    }
+
+    .cmd-hints {
+      display: flex;
+      gap: 14px;
+    }
+
+    /* =========================================================================
+       8. BIOMETRIC AUTHENTICATION SIMULATION MODAL
+       ========================================================================= */
+    .biometric-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(28, 35, 43, 0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 120;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--duration-quick) var(--ease-smooth);
+    }
+
+    .biometric-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .biometric-modal {
+      width: 100%;
+      max-width: 380px;
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-xl);
+      padding: 38px 28px;
+      text-align: center;
+      box-shadow: var(--shadow-floating);
+      transform: scale(0.94);
+      transition: transform var(--duration-normal) var(--ease-spring);
+    }
+
+    .biometric-overlay.active .biometric-modal {
+      transform: scale(1);
+    }
+
+    .bio-sensor-ring {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: rgba(106, 142, 174, 0.08);
+      border: 2px solid var(--color-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bio-laser-beam {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--color-blue);
+      box-shadow: 0 0 12px var(--color-blue);
+      animation: laserSweep 1.2s ease-in-out infinite alternate;
+    }
+
+    @keyframes laserSweep {
+      0% { top: 10%; opacity: 0.3; }
+      100% { top: 90%; opacity: 1; }
+    }
+
+    .bio-icon {
+      width: 44px;
+      height: 44px;
+      color: var(--color-blue);
+      stroke-width: 1.5;
+    }
+
+    .bio-success-icon {
+      display: none;
+      width: 46px;
+      height: 46px;
+      color: var(--color-sage);
+    }
+
+    .bio-status-title {
+      font-size: var(--text-lg);
+      margin-bottom: 6px;
+    }
+
+    .bio-status-desc {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+    }
+
+    /* =========================================================================
+       9. RESPONSIVE MEDIA QUERIES
+       ========================================================================= */
+    /* Tablet Breakpoint (1024px and below) */
+    @media (max-width: 1024px) {
+      :root {
+        --sidebar-width: var(--sidebar-collapsed-width);
+      }
+
+      .sidebar-brand-text,
+      .nav-category,
+      .nav-btn span,
+      .user-info,
+      .user-logout-btn {
+        display: none;
+      }
+
+      .sidebar-header {
+        padding: 0 18px;
+        justify-content: center;
+      }
+
+      .nav-btn {
+        justify-content: center;
+        padding: 12px;
+      }
+
+      .nav-btn.active::before {
+        left: 2px;
+      }
+
+      .user-profile-card {
+        padding: 6px;
+        justify-content: center;
+      }
+
+      .content-canvas {
+        padding: 28px 24px;
+      }
+    }
+
+    /* Mobile Breakpoint (768px and below) */
+    @media (max-width: 768px) {
+      .app-sidebar {
+        transform: translateX(-100%);
+        width: 270px;
+      }
+
+      .app-sidebar.mobile-open {
+        transform: translateX(0);
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .sidebar-brand-text,
+      .nav-category,
+      .nav-btn span,
+      .user-info,
+      .user-logout-btn {
+        display: block;
+      }
+
+      .nav-btn {
+        justify-content: flex-start;
+        padding: 10px 14px;
+      }
+
+      .app-main {
+        margin-left: 0;
+      }
+
+      .mobile-menu-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .app-topbar {
+        padding: 0 18px;
+      }
+
+      .topbar-user-meta {
+        display: none;
+      }
+
+      .content-canvas {
+        padding: 20px 16px;
+      }
+
+      .login-card {
+        padding: 32px 22px;
+      }
+
+      .system-status-pill {
+        display: none; /* preserve space on ultra-small viewports */
+      }
+    }
+
+    /* Reduced Motion Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+      }
+    }
+    /* =========================================================================
+       10. STUDENT OS MODULES SPECIFIC STYLES
+       Visual consistency strictly maintained with Foundation Design Tokens:
+       --color-blue: #6A8EAE, --color-beige: #D4C9B7, --color-cream: #F8F4ED, --color-sage: #9EBBAF
+       ========================================================================= */
+    .student-page-header {
+      margin-bottom: 28px;
+    }
+
+    .student-eyebrow {
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-blue);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .student-eyebrow svg {
+      width: 14px;
+      height: 14px;
+    }
+
+    .student-title-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .student-title-row h1 {
+      font-size: var(--text-3xl);
+      letter-spacing: -0.025em;
+    }
+
+    .student-title-row p {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+      margin-top: 4px;
+    }
+
+    /* Four Stat Cards Grid */
+    .student-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .stat-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      box-shadow: var(--shadow-raised);
+      position: relative;
+      overflow: hidden;
+      transition: transform var(--duration-quick) var(--ease-spring), box-shadow var(--duration-quick) var(--ease-spring);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-floating);
+    }
+
+    .stat-card-label {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .stat-card-label svg {
+      width: 16px;
+      height: 16px;
+      color: var(--color-ink-muted);
+    }
+
+    .stat-card-value {
+      font-family: var(--font-heading);
+      font-size: 2.25rem;
+      font-weight: 600;
+      line-height: 1.1;
+      color: var(--color-ink);
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .stat-card-footer {
+      font-size: var(--text-xs);
+      color: var(--color-ink-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Bento 2-Col Layout for Dashboard */
+    .student-bento-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .bento-card-title-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .bento-card-title-row h3 {
+      font-size: var(--text-xl);
+    }
+
+    /* Timetable period rows in Dashboard & Timetable page */
+    .period-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .period-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-border-subtle);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .period-item:hover {
+      background: rgba(255, 255, 255, 0.92);
+      border-color: var(--color-border);
+    }
+
+    /* Current period live styling with sage border and glow */
+    .period-item.live-period {
+      background: rgba(158, 187, 175, 0.12) !important;
+      border: 1.5px solid var(--color-sage) !important;
+      box-shadow: 0 0 22px rgba(158, 187, 175, 0.32) !important;
+      position: relative;
+    }
+
+    .period-item.complete-period {
+      opacity: 0.72;
+    }
+
+    .period-time-col {
+      width: 140px;
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .period-time-col span.period-num {
+      font-size: 0.688rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--color-ink-subtle);
+    }
+
+    .period-main-col {
+      flex: 1;
+      padding: 0 16px;
+    }
+
+    .period-subject-name {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-ink);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .period-meta-text {
+      font-size: var(--text-xs);
+      color: var(--color-ink-muted);
+      margin-top: 2px;
+    }
+
+    /* Live Countdown Clock Badge */
+    .live-countdown-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-family: monospace;
+      font-size: var(--text-xs);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #3b5f4f;
+      background: rgba(158, 187, 175, 0.28);
+      border: 1px solid rgba(158, 187, 175, 0.5);
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      box-shadow: 0 0 12px rgba(158, 187, 175, 0.3);
+    }
+
+    /* Animated Progress Bar */
+    .progress-track {
+      width: 100%;
+      height: 8px;
+      background: rgba(28, 35, 43, 0.08);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      background: linear-gradient(90deg, var(--color-blue), var(--color-sage));
+      transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+    }
+
+    .progress-fill.animated-pulse::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+      animation: progressShimmer 2.2s infinite ease-in-out;
+    }
+
+    @keyframes progressShimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    /* Live Activity Stream Feed */
+    .feed-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .feed-item {
+      padding: 14px 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--color-border-subtle);
+      transition: all var(--duration-quick) ease;
+    }
+
+    .feed-item:hover {
+      background: #FFFFFF;
+      border-color: var(--color-border-warm);
+    }
+
+    .feed-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .feed-time {
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+    }
+
+    .feed-title {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 4px;
+    }
+
+    .feed-desc {
+      font-size: var(--text-xs);
+      color: var(--color-ink-muted);
+      line-height: 1.55;
+    }
+
+    /* =========================================================================
+       TIMETABLE PAGE HERO & MODES
+       ========================================================================= */
+    .timetable-hero-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1.5px solid var(--color-sage);
+      box-shadow: 0 0 28px rgba(158, 187, 175, 0.25);
+      border-radius: var(--radius-xl);
+      padding: 26px 30px;
+      margin-bottom: 26px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .countdown-display-large {
+      font-family: monospace;
+      font-size: 2.75rem;
+      font-weight: 700;
+      color: var(--color-ink);
+      letter-spacing: -0.02em;
+      line-height: 1;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .countdown-display-large small {
+      font-size: var(--text-xs);
+      font-family: var(--font-body);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* Timetable mode toggle pill bar */
+    .timetable-controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .mode-pill-group {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.7);
+      border: 1px solid var(--color-border-warm);
+      border-radius: var(--radius-full);
+      padding: 3px;
+    }
+
+    .mode-pill {
+      padding: 5px 14px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      transition: all var(--duration-quick) var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .mode-pill.active {
+      background: var(--color-blue);
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(106, 142, 174, 0.35);
+    }
+
+    /* =========================================================================
+       ASSIGNMENTS MODULE STYLES
+       ========================================================================= */
+    .assignments-stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .asg-filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .asg-filter-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .asg-filter-btn {
+      padding: 6px 14px;
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      border: 1px solid var(--color-border-subtle);
+      background: rgba(255, 255, 255, 0.65);
+      color: var(--color-ink-muted);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .asg-filter-btn:hover, .asg-filter-btn.active {
+      border-color: var(--color-blue);
+      background: #FFFFFF;
+      color: var(--color-ink);
+    }
+
+    .asg-filter-btn.active {
+      background: rgba(106, 142, 174, 0.14);
+      color: #315372;
+    }
+
+    .asg-card {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 22px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--color-border-subtle);
+      transition: all var(--duration-quick) var(--ease-spring);
+      margin-bottom: 12px;
+      cursor: pointer;
+    }
+
+    .asg-card:hover {
+      background: #FFFFFF;
+      border-color: var(--color-border-warm);
+      box-shadow: var(--shadow-subtle);
+      transform: translateY(-1px);
+    }
+
+    .asg-card.completed {
+      background: rgba(248, 244, 237, 0.6);
+      opacity: 0.7;
+    }
+
+    .asg-card.completed .asg-title {
+      text-decoration: line-through;
+      color: var(--color-ink-subtle);
+    }
+
+    .asg-checkbox-box {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      border: 2px solid var(--color-border-warm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #FFFFFF;
+      transition: all var(--duration-quick) ease;
+      flex-shrink: 0;
+    }
+
+    .asg-card.completed .asg-checkbox-box {
+      background: var(--color-sage);
+      border-color: var(--color-sage);
+      color: #FFFFFF;
+    }
+
+    .asg-card.completed .asg-checkbox-box svg {
+      stroke: #FFFFFF;
+    }
+
+    .asg-meta-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 4px;
+      flex-wrap: wrap;
+    }
+
+    /* =========================================================================
+       DIGITAL PASS: SIGNATURE 3D FLIP CARD
+       ========================================================================= */
+    .pass-layout {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .pass-container {
+      perspective: 1400px;
+      width: 100%;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+
+    .pass-card-3d {
+      position: relative;
+      width: 100%;
+      height: 580px;
+      transform-style: preserve-3d;
+      -webkit-transform-style: preserve-3d;
+      transition: transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+      cursor: pointer;
+    }
+
+    .pass-card-3d.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .pass-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: var(--radius-xl);
+      padding: 34px 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.92);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1.5px solid rgba(255, 255, 255, 0.85);
+      box-shadow: var(--shadow-floating);
+    }
+
+    .pass-face.back {
+      transform: rotateY(180deg);
+      background: #1C232B;
+      color: #F8F4ED;
+      border: 1.5px solid rgba(158, 187, 175, 0.35);
+    }
+
+    /* Subtle luxury gloss sheen */
+    .pass-gloss {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0.08) 40%, transparent 58%);
+      z-index: 2;
+    }
+
+    .pass-back-glow {
+      position: absolute;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(106, 142, 174, 0.2) 0%, transparent 70%);
+      top: -70px;
+      right: -70px;
+      pointer-events: none;
+    }
+
+    .pass-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--color-border-subtle);
+      padding-bottom: 16px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .pass-face.back .pass-header {
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .pass-brand-tag {
+      font-size: 0.688rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .pass-face.back .pass-brand-tag {
+      color: #A6B4C4;
+    }
+
+    .pass-avatar-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 12px 0 16px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .pass-avatar-ring {
+      width: 96px;
+      height: 96px;
+      border-radius: 28px;
+      background: linear-gradient(135deg, var(--color-blue), #456682);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-size: 2.25rem;
+      font-weight: 600;
+      border: 4px solid #FFFFFF;
+      box-shadow: 0 10px 24px rgba(106, 142, 174, 0.32);
+      margin-bottom: 14px;
+    }
+
+    .pass-student-name {
+      font-family: var(--font-heading);
+      font-size: 1.85rem;
+      font-weight: 600;
+      color: var(--color-ink);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-align: center;
+    }
+
+    .pass-student-stream {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink-muted);
+      margin-top: 4px;
+    }
+
+    .pass-meta-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      position: relative;
+      z-index: 3;
+    }
+
+    .pass-meta-item {
+      padding: 10px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(248, 244, 237, 0.75);
+      border: 1px solid var(--color-border-subtle);
+    }
+
+    .pass-meta-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--color-ink-subtle);
+      margin-bottom: 3px;
+    }
+
+    .pass-meta-val {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-ink);
+    }
+
+    .pass-qr-frame {
+      width: 200px;
+      height: 200px;
+      border-radius: 16px;
+      background: #FFFFFF;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 10px auto;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+      position: relative;
+      z-index: 3;
+    }
+
+    .pass-token-badge {
+      font-family: monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+      color: var(--color-sage);
+      background: rgba(158, 187, 175, 0.14);
+      border: 1px solid rgba(158, 187, 175, 0.35);
+      padding: 7px 16px;
+      border-radius: var(--radius-sm);
+      text-align: center;
+      margin: 10px 0 6px;
+      display: inline-block;
+      width: 100%;
+      box-shadow: 0 0 16px rgba(158, 187, 175, 0.18);
+    }
+
+    .flip-instruction-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 12px 24px;
+      border-radius: var(--radius-full);
+      background: #FFFFFF;
+      border: 1px solid var(--color-border-warm);
+      color: var(--color-ink);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      box-shadow: var(--shadow-subtle);
+      transition: all var(--duration-quick) var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .flip-instruction-btn:hover {
+      border-color: var(--color-blue);
+      box-shadow: var(--shadow-raised);
+      transform: translateY(-1px);
+    }
+
+    /* =========================================================================
+       PITCH PAD GRID & CARDS
+       ========================================================================= */
+    .pitch-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .pitch-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-raised);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .pitch-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-floating);
+    }
+
+    .pitch-card.directors-pick-active {
+      border-color: var(--color-beige);
+      box-shadow: 0 8px 24px rgba(212, 201, 183, 0.35);
+    }
+
+    .directors-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.688rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #725a2a;
+      background: rgba(212, 201, 183, 0.42);
+      border: 1px solid rgba(212, 201, 183, 0.85);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      margin-bottom: 12px;
+      align-self: flex-start;
+      opacity: 0;
+      transform: translateY(-4px);
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .pitch-card.directors-pick-active .directors-badge {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .pitch-title {
+      font-family: var(--font-heading);
+      font-size: 1.45rem;
+      font-weight: 600;
+      color: var(--color-ink);
+      margin-bottom: 6px;
+    }
+
+    .pitch-desc {
+      font-size: var(--text-sm);
+      color: var(--color-ink-muted);
+      line-height: 1.5;
+      margin-bottom: 14px;
+      flex: 1;
+    }
+
+    .pitch-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 20px;
+    }
+
+    .pitch-tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      color: var(--color-ink-muted);
+      background: rgba(248, 244, 237, 0.85);
+      border: 1px solid var(--color-border-subtle);
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+
+    .pitch-action-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid var(--color-border-subtle);
+      padding-top: 14px;
+      margin-top: auto;
+    }
+
+    .vote-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 14px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border-warm);
+      background: rgba(255, 255, 255, 0.75);
+      color: var(--color-ink);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      transition: all var(--duration-quick) var(--ease-spring);
+      cursor: pointer;
+    }
+
+    .vote-btn:hover {
+      border-color: var(--color-blue);
+      background: #FFFFFF;
+      transform: translateY(-1px);
+    }
+
+    .vote-btn.voted {
+      background: rgba(106, 142, 174, 0.16);
+      border-color: var(--color-blue);
+      color: #2b4f6e;
+    }
+
+    .vote-btn.voted svg {
+      fill: var(--color-blue);
+    }
+
+    .toggle-switch-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggle-switch-label {
+      font-size: var(--text-xs);
+      color: var(--color-ink-subtle);
+      font-weight: 600;
+    }
+
+    .toggle-switch-track {
+      width: 38px;
+      height: 22px;
+      border-radius: var(--radius-full);
+      background: rgba(28, 35, 43, 0.16);
+      position: relative;
+      transition: background var(--duration-quick) ease;
+    }
+
+    .toggle-switch-wrap.active .toggle-switch-track {
+      background: var(--color-blue);
+    }
+
+    .toggle-switch-knob {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+      transition: transform var(--duration-quick) var(--ease-spring);
+    }
+
+    .toggle-switch-wrap.active .toggle-switch-knob {
+      transform: translateX(16px);
+    }
+
+    /* =========================================================================
+       CLUBS & HOUSES STYLES
+       ========================================================================= */
+    .house-hero-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-xl);
+      padding: 32px;
+      box-shadow: var(--shadow-floating);
+      margin-bottom: 32px;
+    }
+
+    .house-leaderboard-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .house-mini-card {
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-border-subtle);
+      text-align: center;
+      transition: all var(--duration-quick) ease;
+    }
+
+    .house-mini-card.is-current {
+      background: rgba(106, 142, 174, 0.12);
+      border-color: var(--color-blue);
+      box-shadow: 0 4px 14px rgba(106, 142, 174, 0.15);
+    }
+
+    .clubs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .club-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-raised);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all var(--duration-quick) var(--ease-spring);
+    }
+
+    .club-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-floating);
+      border-color: var(--color-border-warm);
+    }
+
+    /* Responsive media query tweaks */
+    @media (max-width: 1024px) {
+      .student-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .student-bento-grid {
+        grid-template-columns: 1fr;
+      }
+      .pitch-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .house-leaderboard-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .student-stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .pitch-grid {
+        grid-template-columns: 1fr;
+      }
+      .house-leaderboard-grid {
+        grid-template-columns: 1fr;
+      }
+      .pass-card-3d {
+        height: 550px;
+      }
+      .pass-face {
+        padding: 24px 20px;
+      }
+      .assignments-stats-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =========================================================================
+       LOGIN SCREEN (AUTOMATIC ROLE DETECTION ENGINE)
+       ========================================================================= -->
+  <section class="login-viewport" id="login-viewport">
+    <div class="login-card">
+      <div class="brand-mark">
+        <div class="brand-crest">B</div>
+        <div>
+          <div class="brand-title">BrainzOS</div>
+          <div class="brand-tagline">Institutional Operating System</div>
+        </div>
+      </div>
+
+      <h1 class="login-heading">Welcome back.</h1>
+      <p class="login-description">
+        Access your academic and administrative workspace. Your institutional role is live-detected from your school identity.
+      </p>
+
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label" for="school-email">What's your school email?</label>
+          <div class="input-wrapper">
+            <span class="input-icon">
+              <i data-lucide="mail" style="width: 18px; height: 18px;"></i>
+            </span>
+            <input 
+              id="school-email" 
+              type="email" 
+              placeholder="e.g., student@brainz.edu" 
+              autocomplete="email"
+              required 
+            />
+          </div>
+        </div>
+
+        <!-- Live Role Detection Animated Banner -->
+        <div class="role-detection-box" id="role-detector-box">
+          <span class="detection-label">Role Detected</span>
+          <span class="detection-result" id="role-detector-text">
+            <span class="role-dot"></span>
+            <span>Awaiting school email…</span>
+          </span>
+        </div>
+
+        <button type="submit" class="btn-primary" id="continue-btn" disabled>
+          <span>Continue to BrainzOS</span>
+          <i data-lucide="arrow-right" style="width: 17px; height: 17px;"></i>
+        </button>
+
+        <button type="button" class="btn-secondary" id="biometric-btn" onclick="startBiometricLogin()">
+          <i data-lucide="fingerprint" style="width: 18px; height: 18px;"></i>
+          <span>Sign in with biometrics</span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Protected institutional gateway · CBSE Senior Secondary Curriculum<br />
+        Brainz Academic Computing Cluster
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       MAIN OS APP SHELL (POST-LOGIN WORKSPACE)
+       ========================================================================= -->
+  <div class="app-viewport" id="app-viewport">
+    
+    <!-- Left Navigation Sidebar -->
+    <aside class="app-sidebar" id="app-sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-brand">
+          <div class="sidebar-crest">B</div>
+          <div class="sidebar-brand-text">
+            <strong>BrainzOS</strong>
+            <small>School OS</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dynamically Populated Role Nav List -->
+      <nav class="sidebar-nav" id="sidebar-nav-container">
+        <!-- Rendered by renderSidebarNav() based on active role -->
+      </nav>
+
+      <!-- Pinned Bottom User Badge -->
+      <div class="sidebar-footer">
+        <div class="user-profile-card">
+          <div class="user-avatar" id="sidebar-user-avatar">IK</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebar-user-name">Ishaan Kalra</div>
+            <div class="user-role-badge" id="sidebar-user-badge">Student</div>
+          </div>
+          <button class="user-logout-btn" title="Sign out" onclick="logoutUser()">
+            <i data-lucide="log-out" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace Container -->
+    <div class="app-main">
+      
+      <!-- Topbar Header -->
+      <header class="app-topbar">
+        <div class="topbar-left">
+          <button class="mobile-menu-btn" onclick="toggleMobileSidebar()" aria-label="Toggle Navigation">
+            <i data-lucide="menu" style="width: 20px; height: 20px;"></i>
+          </button>
+          
+          <div class="global-search-container" onclick="openCommandLauncher()">
+            <i data-lucide="search" class="global-search-icon"></i>
+            <input 
+              type="text" 
+              class="global-search-input" 
+              placeholder="Search BrainzOS…" 
+              readonly
+            />
+            <kbd class="global-search-kbd">⌘K</kbd>
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Live Status Indicator with Pulsing Sage Beacon -->
+          <div class="system-status-pill">
+            <span class="status-beacon">
+              <span class="status-pulse"></span>
+              <span class="status-dot"></span>
+            </span>
+            <span>LIVE · CBSE Senior Secondary</span>
+          </div>
+
+          <!-- Topbar Profile Pill -->
+          <div class="topbar-user">
+            <div class="topbar-user-meta">
+              <div class="topbar-user-name" id="topbar-user-name">Ishaan Kalra</div>
+              <div class="topbar-user-role" id="topbar-user-role">Student</div>
+            </div>
+            <div class="user-avatar" id="topbar-user-avatar">IK</div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Center Canvas Content Area -->
+      <main class="content-canvas" id="content-canvas">
+
+        <!-- ===================================================================
+             EMPTY STATE / PLACEHOLDER VIEW (Active when no role pages are loaded)
+             =================================================================== -->
+        <section id="os-shell-welcome" class="os-page active">
+          <div class="placeholder-container">
+            <div class="placeholder-badge">
+              <span class="badge badge-blue">Foundation Shell Loaded</span>
+            </div>
+            <h2 id="welcome-heading" style="margin-bottom: 12px;">Welcome to BrainzOS</h2>
+            <p id="welcome-subtext" style="max-width: 640px; margin: 0 auto 24px; font-size: 15px;">
+              The foundation operating system shell is live. Three role-specific agents will build and inject the dedicated dashboards, analytics, and tool suites into their respective markers.
+            </p>
+
+            <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn-secondary" style="width: auto;" onclick="openCommandLauncher()">
+                <i data-lucide="terminal" style="width: 16px; height: 16px;"></i>
+                <span>Open Command Palette (⌘K)</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             ROLE PAGE EXTENSION CONTAINERS
+             Subsequent agents: Inject your page markup between the markers below.
+             Each view must have class="os-page" and a unique id="...".
+             =================================================================== -->
+
+        <!-- STUDENT_PAGES_START -->
+        
+        <!-- ===================================================================
+             1. STUDENT DASHBOARD (HOME VIEW)
+             =================================================================== -->
+        <section id="page-student-dashboard" class="os-page">
+          <!-- Page Header -->
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="graduation-cap"></i>
+              <span>Academic Year 2026–27 · Term 1</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Welcome, Ishaan Kalra</h1>
+                <p>Class XI-B · Stream Commerce · Orion House · ID: BOS-XIB-041</p>
+              </div>
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button class="btn-secondary" style="width: auto; padding: 10px 18px;" onclick="navigateTo('page-student-pass')">
+                  <i data-lucide="credit-card" style="width: 16px; height: 16px;"></i>
+                  <span>Digital Pass</span>
+                </button>
+                <button class="btn-primary" style="width: auto; padding: 10px 20px;" onclick="navigateTo('page-student-timetable')">
+                  <i data-lucide="calendar" style="width: 16px; height: 16px;"></i>
+                  <span>Today's Timetable</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Four Stat Cards -->
+          <div class="student-stats-grid">
+            <!-- Card 1: Attendance -->
+            <div class="stat-card">
+              <div class="stat-card-label">
+                <span>Attendance</span>
+                <i data-lucide="check-circle-2"></i>
+              </div>
+              <div class="stat-card-value">94.6%</div>
+              <div class="stat-card-footer">
+                <span class="badge badge-sage" style="font-size: 0.688rem; padding: 2px 7px;">+0.4% this mo</span>
+                <span>142 / 150 sessions</span>
+              </div>
+            </div>
+
+            <!-- Card 2: Assignments (Live Count) -->
+            <div class="stat-card" style="cursor: pointer;" onclick="navigateTo('page-student-assignments')">
+              <div class="stat-card-label">
+                <span>Assignments</span>
+                <i data-lucide="file-text"></i>
+              </div>
+              <div class="stat-card-value" id="dash-assignments-count">08</div>
+              <div class="stat-card-footer">
+                <span class="badge badge-beige" style="font-size: 0.688rem; padding: 2px 7px;">2 Due Soon</span>
+                <span id="dash-assignments-sub">Active tasks pending</span>
+              </div>
+            </div>
+
+            <!-- Card 3: House Points -->
+            <div class="stat-card" style="cursor: pointer;" onclick="navigateTo('page-student-clubs')">
+              <div class="stat-card-label">
+                <span>House Points</span>
+                <i data-lucide="shield"></i>
+              </div>
+              <div class="stat-card-value">1,240</div>
+              <div class="stat-card-footer">
+                <span class="badge badge-blue" style="font-size: 0.688rem; padding: 2px 7px;">Rank #2</span>
+                <span>Orion House (140 pts to #1)</span>
+              </div>
+            </div>
+
+            <!-- Card 4: Pitch Pad Rank -->
+            <div class="stat-card" style="cursor: pointer;" onclick="navigateTo('page-student-pitch')">
+              <div class="stat-card-label">
+                <span>Pitch Pad Rank</span>
+                <i data-lucide="rocket"></i>
+              </div>
+              <div class="stat-card-value">#04</div>
+              <div class="stat-card-footer">
+                <span class="badge badge-sage" style="font-size: 0.688rem; padding: 2px 7px;">Top 5 Finalist</span>
+                <span>QueueLess · 42 votes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bento Grid: Timetable + Deadline & Live School Feed -->
+          <div class="student-bento-grid">
+            
+            <!-- Left: Today's Timetable List -->
+            <div class="card">
+              <div class="bento-card-title-row">
+                <div>
+                  <h3>Today's Timetable</h3>
+                  <div class="subtext" style="margin-top: 3px;">Periods compute status live from the clock</div>
+                </div>
+                <button class="badge badge-blue" style="cursor: pointer;" onclick="navigateTo('page-student-timetable')">
+                  <span>Full Timeline</span>
+                  <i data-lucide="arrow-right" style="width: 12px; height: 12px;"></i>
+                </button>
+              </div>
+
+              <div class="period-list" id="dashboard-period-list">
+                <!-- Dynamically populated by updateTimetableState() -->
+              </div>
+            </div>
+
+            <!-- Right: Next Deadline + Live School Feed -->
+            <div style="display: flex; flex-direction: column; gap: 24px;">
+              
+              <!-- Next Deadline Card -->
+              <div class="card" style="border: 1px solid var(--color-border-warm);">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                  <span class="badge badge-beige">Next Deadline</span>
+                  <span class="subtext" style="font-weight: 600;">Tomorrow · 9:00 AM</span>
+                </div>
+
+                <h4 style="font-family: var(--font-heading); font-size: 1.3rem; margin-bottom: 6px;">
+                  Market Structure Case
+                </h4>
+                <p style="font-size: var(--text-xs); color: var(--color-ink-muted); margin-bottom: 16px;">
+                  Business Studies · Unit 4: Monopoly & Oligopoly Price Rigidity Case Study.
+                </p>
+
+                <!-- Real Animated Progress Bar -->
+                <div style="margin-bottom: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-size: var(--text-xs); margin-bottom: 6px; font-weight: 600;">
+                    <span style="color: var(--color-ink-muted);">Window Elapsed</span>
+                    <span style="color: var(--color-blue);" id="dash-deadline-timer">14h 28m remaining</span>
+                  </div>
+                  <div class="progress-track" style="height: 9px;">
+                    <div class="progress-fill animated-pulse" style="width: 76%;"></div>
+                  </div>
+                </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 14px; pt-2;">
+                  <span class="subtext" style="font-size: 0.75rem;">Weightage: 15% · PDF Deliverable</span>
+                  <button class="btn-primary" style="width: auto; padding: 7px 14px; font-size: var(--text-xs);" onclick="navigateTo('page-student-assignments')">
+                    <span>View Task</span>
+                    <i data-lucide="chevron-right" style="width: 14px; height: 14px;"></i>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Live School Feed Activity Stream -->
+              <div class="card">
+                <div class="bento-card-title-row">
+                  <div>
+                    <h3>Live School Feed</h3>
+                    <div class="subtext" style="margin-top: 2px;">Campus bulletin & society dispatches</div>
+                  </div>
+                  <span class="badge badge-sage">
+                    <span class="status-dot"></span>
+                    <span>Live</span>
+                  </span>
+                </div>
+
+                <div class="feed-stream">
+                  <!-- Feed Item 1: Commerce Club -->
+                  <div class="feed-item">
+                    <div class="feed-top">
+                      <span class="badge badge-blue" style="font-size: 0.65rem;">Commerce Club</span>
+                      <span class="feed-time">Today · 08:45 AM</span>
+                    </div>
+                    <div class="feed-title">Mock-Trading Challenge Registrations</div>
+                    <div class="feed-desc">
+                      Intra-school mock equity trading portal opens at 2:00 PM today. Virtual portfolios are now seeded with ₹1,00,000 demo capital.
+                    </div>
+                  </div>
+
+                  <!-- Feed Item 2: Student Council -->
+                  <div class="feed-item">
+                    <div class="feed-top">
+                      <span class="badge badge-beige" style="font-size: 0.65rem;">Student Council</span>
+                      <span class="feed-time">Yesterday · 4:15 PM</span>
+                    </div>
+                    <div class="feed-title">House Cup Standings Revised</div>
+                    <div class="feed-desc">
+                      Orion House earns +120 points following the Inter-House Business Quiz win, cutting Phoenix's lead to 140 points.
+                    </div>
+                  </div>
+
+                  <!-- Feed Item 3: BrainzOS Pass -->
+                  <div class="feed-item">
+                    <div class="feed-top">
+                      <span class="badge badge-sage" style="font-size: 0.65rem;">BrainzOS Identity</span>
+                      <span class="feed-time">Yesterday · 11:30 AM</span>
+                    </div>
+                    <div class="feed-title">NFC Digital Pass Re-Key Refresh</div>
+                    <div class="feed-desc">
+                      NFC smart turnstiles across Central Quad and Library gates updated with dynamic rotating cryptographic tokens.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             2. STUDENT TIMETABLE (FULL-DAY TIMELINE & LIVE COUNTDOWN)
+             =================================================================== -->
+        <section id="page-student-timetable" class="os-page">
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="clock"></i>
+              <span>Academic Timetable · Spring Term 2026–27</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Class XI-B Timetable</h1>
+                <p>Stream Commerce · 6 Daily Periods · Automatic Real-Time Period Detection</p>
+              </div>
+              <div class="system-status-pill">
+                <span class="status-beacon">
+                  <span class="status-pulse"></span>
+                  <span class="status-dot"></span>
+                </span>
+                <span id="timetable-real-clock">00:00:00</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Bar: Real Clock vs Simulation Mode Toggle -->
+          <div class="timetable-controls-bar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span class="subtext" style="font-weight: 600; text-transform: uppercase; font-size: 0.688rem; letter-spacing: 0.06em;">Detection Mode:</span>
+              <div class="mode-pill-group">
+                <div class="mode-pill active" id="mode-pill-live" onclick="setTimetableMode('live')">
+                  Real Current Time
+                </div>
+                <div class="mode-pill" id="mode-pill-sim" onclick="setTimetableMode('sim')">
+                  Simulate School Day (Period 3 Live)
+                </div>
+              </div>
+            </div>
+
+            <div class="subtext" id="timetable-mode-hint" style="font-size: var(--text-xs);">
+              Evaluating current system clock against period start & end intervals.
+            </div>
+          </div>
+
+          <!-- Hero Highlight Card: Current Live Period & Working Countdown Timer -->
+          <div class="timetable-hero-card" id="timetable-hero-card">
+            <div>
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span class="badge badge-sage" id="hero-period-badge">
+                  <span class="status-dot"></span>
+                  <span id="hero-period-status-text">LIVE NOW</span>
+                </span>
+                <span class="subtext" id="hero-period-time">10:20 AM – 11:10 AM</span>
+              </div>
+              <h2 id="hero-period-name" style="font-size: 2.1rem; margin-bottom: 4px;">Accountancy</h2>
+              <p id="hero-period-meta" style="font-size: var(--text-sm); color: var(--color-ink-muted);">
+                Room 112 · Mrs. Sunita Sharma · Ledger Balancing & Journal Entries
+              </p>
+            </div>
+
+            <div style="text-align: right;">
+              <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.688rem; letter-spacing: 0.08em; margin-bottom: 6px; color: var(--color-ink-subtle);">
+                Time Remaining in Period
+              </div>
+              <div class="countdown-display-large">
+                <span id="hero-countdown-timer">24:18</span>
+                <small>MM:SS</small>
+              </div>
+              <div class="progress-track" style="width: 180px; height: 6px; margin-top: 10px; margin-left: auto;">
+                <div class="progress-fill" id="hero-countdown-progress" style="width: 52%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Day Schedule Table / Timeline -->
+          <div class="card">
+            <div class="bento-card-title-row">
+              <h3>Full-Day Schedule Breakdown</h3>
+              <span class="subtext">Status calculated dynamically without hardcoding</span>
+            </div>
+
+            <div class="period-list" id="timetable-full-list">
+              <!-- Rendered dynamically by updateTimetableState() -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             3. STUDENT ASSIGNMENTS (INTERACTIVE CHECKLIST WITH LIVE SYNC)
+             =================================================================== -->
+        <section id="page-student-assignments" class="os-page">
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="check-square"></i>
+              <span>Coursework & Deliverables</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Assignments & Submissions</h1>
+                <p>Class XI-B Commerce · Mark items complete to live-update the dashboard count</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metrics Row -->
+          <div class="assignments-stats-row">
+            <div class="stat-card" style="padding: 18px 22px;">
+              <div class="stat-card-label">
+                <span>Pending Tasks</span>
+                <i data-lucide="alert-circle"></i>
+              </div>
+              <div class="stat-card-value" id="asg-pending-count">08</div>
+              <div class="stat-card-footer">
+                <span>Synced with Dashboard counter</span>
+              </div>
+            </div>
+
+            <div class="stat-card" style="padding: 18px 22px;">
+              <div class="stat-card-label">
+                <span>Completed Tasks</span>
+                <i data-lucide="check-circle"></i>
+              </div>
+              <div class="stat-card-value" id="asg-completed-count">00</div>
+              <div class="stat-card-footer">
+                <span class="badge badge-sage" id="asg-completion-pct">0% Completed</span>
+              </div>
+            </div>
+
+            <div class="stat-card" style="padding: 18px 22px;">
+              <div class="stat-card-label">
+                <span>Next Due Milestone</span>
+                <i data-lucide="calendar"></i>
+              </div>
+              <div class="stat-card-value" style="font-size: 1.5rem; margin: 12px 0 6px;">Tomorrow</div>
+              <div class="stat-card-footer">
+                <span>Market Structure Case (9:00 AM)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Pills & Search -->
+          <div class="asg-filter-bar">
+            <div class="asg-filter-pills">
+              <button class="asg-filter-btn active" id="asg-filter-all" onclick="filterAssignments('all')">All (<span id="count-all">8</span>)</button>
+              <button class="asg-filter-btn" id="asg-filter-pending" onclick="filterAssignments('pending')">Pending (<span id="count-pending">8</span>)</button>
+              <button class="asg-filter-btn" id="asg-filter-completed" onclick="filterAssignments('completed')">Completed (<span id="count-completed">0</span>)</button>
+              <button class="asg-filter-btn" id="asg-filter-commerce" onclick="filterAssignments('commerce')">Commerce Core</button>
+            </div>
+
+            <div style="position: relative; width: 260px;">
+              <input 
+                type="text" 
+                id="asg-search-input" 
+                placeholder="Search assignments…" 
+                style="width: 100%; padding: 8px 14px 8px 32px; border-radius: var(--radius-full); background: rgba(255,255,255,0.75); border: 1px solid var(--color-border-warm); font-size: var(--text-xs);"
+                oninput="handleAssignmentSearch(this.value)"
+              />
+              <i data-lucide="search" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 14px; height: 14px; color: var(--color-ink-subtle);"></i>
+            </div>
+          </div>
+
+          <!-- Assignments List Container -->
+          <div id="assignments-list-container">
+            <!-- Rendered by renderAssignments() with interactive checkboxes -->
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             4. STUDENT DIGITAL PASS (SIGNATURE 3D FLIP CARD WITH QR & TOKEN)
+             =================================================================== -->
+        <section id="page-student-pass" class="os-page">
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="shield-check"></i>
+              <span>Smart Identity & Access</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Digital Pass</h1>
+                <p>Institutional NFC & Optical Credential · End-to-End Encrypted Hardware Token</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pass-layout">
+            <!-- 3D Perspective Card Container -->
+            <div class="pass-container" onclick="togglePassFlip()">
+              <div class="pass-card-3d" id="pass-card-element">
+                
+                <!-- FRONT FACE -->
+                <div class="pass-face front">
+                  <div class="pass-gloss"></div>
+                  
+                  <div class="pass-header">
+                    <div class="pass-brand-tag">
+                      <div class="brand-crest" style="width: 24px; height: 24px; font-size: 0.8rem; border-radius: 6px;">B</div>
+                      <strong>BRAINZOS · DIGITAL PASS</strong>
+                    </div>
+                    <span class="badge badge-sage">● ACTIVE</span>
+                  </div>
+
+                  <div class="pass-avatar-wrapper">
+                    <div class="pass-avatar-ring">IK</div>
+                    <div class="pass-student-name">Ishaan Kalra</div>
+                    <div class="pass-student-stream">XI-B · Commerce</div>
+                  </div>
+
+                  <div class="pass-meta-grid">
+                    <div class="pass-meta-item">
+                      <div class="pass-meta-label">House</div>
+                      <div class="pass-meta-val">ORION</div>
+                    </div>
+                    <div class="pass-meta-item">
+                      <div class="pass-meta-label">Status</div>
+                      <div class="pass-meta-val" style="color: #436959;">ACTIVE</div>
+                    </div>
+                    <div class="pass-meta-item">
+                      <div class="pass-meta-label">Valid Until</div>
+                      <div class="pass-meta-val">31 MAR 2027</div>
+                    </div>
+                    <div class="pass-meta-item">
+                      <div class="pass-meta-label">Institutional ID</div>
+                      <div class="pass-meta-val">BOS-XIB-041</div>
+                    </div>
+                  </div>
+
+                  <div style="border-top: 1px dashed var(--color-border-subtle); padding-top: 14px; display: flex; align-items: center; justify-content: space-between; font-size: 0.688rem; color: var(--color-ink-subtle); position: relative; z-index: 3;">
+                    <span>CBSE SMART SECURE ID</span>
+                    <span style="display: flex; align-items: center; gap: 4px;">
+                      <i data-lucide="rotate-cw" style="width: 12px; height: 12px;"></i>
+                      <span>Tap card to inspect QR</span>
+                    </span>
+                  </div>
+                </div>
+
+                <!-- BACK FACE -->
+                <div class="pass-face back">
+                  <div class="pass-back-glow"></div>
+                  <div class="pass-gloss" style="opacity: 0.3;"></div>
+
+                  <div class="pass-header">
+                    <div class="pass-brand-tag">
+                      <i data-lucide="lock" style="width: 14px; height: 14px; color: var(--color-sage);"></i>
+                      <span>END-TO-END ENCRYPTED</span>
+                    </div>
+                    <span class="badge badge-blue" style="font-size: 0.65rem; background: rgba(106, 142, 174, 0.25); color: #B9D0E6; border-color: rgba(106, 142, 174, 0.4);">
+                      NFC SECURE
+                    </span>
+                  </div>
+
+                  <!-- Real Canvas-Generated Crisp QR Pattern -->
+                  <div style="text-align: center;">
+                    <div class="pass-qr-frame">
+                      <canvas id="pass-qr-canvas" width="200" height="200"></canvas>
+                    </div>
+                    <div class="pass-token-badge">9F4A-7C21-LIVE</div>
+                    <p style="font-size: 0.688rem; color: #8C97A4; margin-top: 4px;">
+                      Dynamic Token · Re-keys securely every 60s for turnstile anti-passback
+                    </p>
+                  </div>
+
+                  <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px; display: flex; align-items: center; justify-content: space-between; font-size: 0.688rem; color: #8C97A4; position: relative; z-index: 3;">
+                    <span style="display: flex; align-items: center; gap: 5px;">
+                      <span class="status-dot"></span>
+                      <span>Verified Terminal Link</span>
+                    </span>
+                    <span>BOS-XIB-041</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Flip Trigger Button (Also flips on direct card click!) -->
+            <button class="flip-instruction-btn" onclick="togglePassFlip()">
+              <i data-lucide="refresh-cw" style="width: 16px; height: 16px; color: var(--color-blue);"></i>
+              <span>Flip Digital Pass</span>
+            </button>
+            <div class="subtext" style="font-size: var(--text-xs);">
+              Click anywhere on the physical card or use the button above to rotate in 3D space (~600ms spring transition).
+            </div>
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             5. STUDENT PITCH PAD (STARTUP INCUBATOR & UPVOTE SHOWCASE)
+             =================================================================== -->
+        <section id="page-student-pitch" class="os-page">
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="sparkles"></i>
+              <span>Student Entrepreneurship Hub</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Pitch Pad Ventures</h1>
+                <p>Campus startups and prototype incubators. Upvote ventures and toggle Director's Picks live.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span class="badge badge-beige" id="total-pitch-votes-badge">Total Votes: 237</span>
+                <span class="badge badge-blue">Demo Day: 14 Oct 2026</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pitch Pad 6 Venture Cards Grid -->
+          <div class="pitch-grid" id="pitch-grid-container">
+            <!-- Dynamically populated from PITCH_VENTURES with real JS state -->
+          </div>
+        </section>
+
+        <!-- ===================================================================
+             6. STUDENT CLUBS & HOUSES (HOUSE CHAMPIONSHIP & CLUBS)
+             =================================================================== -->
+        <section id="page-student-clubs" class="os-page">
+          <div class="student-page-header">
+            <div class="student-eyebrow">
+              <i data-lucide="shield"></i>
+              <span>House Cup & Co-Curricular Societies</span>
+            </div>
+            <div class="student-title-row">
+              <div>
+                <h1>Clubs & Houses</h1>
+                <p>Track Orion House's championship standing and active student society participation.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Orion House Feature Card -->
+          <div class="house-hero-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 16px;">
+                <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(106, 142, 174, 0.16); border: 1.5px solid var(--color-blue); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 600; color: var(--color-blue);">
+                  Ω
+                </div>
+                <div>
+                  <h2 style="font-size: 1.85rem; margin-bottom: 2px;">ORION — 1,240 points — #2 of 4 houses</h2>
+                  <p class="subtext">Motto: <em>Ad Astra Per Aspera</em> · Shield: Golden Hunter · House Master: Mr. S. Bannerjee</p>
+                </div>
+              </div>
+              <span class="badge badge-sage" style="font-size: 0.8rem; padding: 6px 14px;">
+                <span class="status-dot"></span>
+                <span>Active Contender</span>
+              </span>
+            </div>
+
+            <!-- Animated Progress Bar relative to Top House's Points (Phoenix @ 1,380) -->
+            <div style="margin: 22px 0 10px;">
+              <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; margin-bottom: 8px;">
+                <span style="color: var(--color-ink-muted);">Proximity to Leader (Phoenix: 1,380 pts)</span>
+                <span style="color: var(--color-blue);" id="orion-progress-pct">89.9% (1,240 / 1,380)</span>
+              </div>
+              <div class="progress-track" style="height: 12px;">
+                <div class="progress-fill animated-pulse" id="orion-house-progress-bar" style="width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+              </div>
+            </div>
+
+            <!-- Standings of All 4 Houses -->
+            <div class="house-leaderboard-grid">
+              <div class="house-mini-card">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #8A723D;">Rank #1 · Leader</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Phoenix</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,380 pts</div>
+              </div>
+
+              <div class="house-mini-card is-current">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: var(--color-blue);">Rank #2 · Ishaan's House</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Orion</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-blue);">1,240 pts</div>
+              </div>
+
+              <div class="house-mini-card">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #3</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Pegasus</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,110 pts</div>
+              </div>
+
+              <div class="house-mini-card">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #4</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Centaurus</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">970 pts</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Co-Curricular Clubs Grid (Clean Glass Cards) -->
+          <h3 style="font-size: var(--text-2xl); margin-bottom: 18px;">Registered Societies & Student Clubs</h3>
+          <div class="clubs-grid">
+            
+            <!-- Club 1: Commerce Club (Ishaan's Core Society) -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-sage">Active Member · Lead Strategist</span>
+                  <span class="subtext" style="font-size: 0.75rem;">48 Members</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Commerce Club</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Financial literacy, equity valuation, mock trading competitions, and macroeconomic policy analysis.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Tuesdays & Thursdays · 3:30 PM</span>
+                  <span><strong>Upcoming:</strong> Mock-Trading Challenge (Today 2:00 PM)</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">Advisor: Mr. R. Mehta</span>
+                <span class="badge badge-blue" style="cursor: pointer;">Portal Open</span>
+              </div>
+            </div>
+
+            <!-- Club 2: Tech Society -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-beige">Collaborator</span>
+                  <span class="subtext" style="font-size: 0.75rem;">64 Members</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Tech Society</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Full-stack software engineering, algorithmic competitions, machine learning workshops, and campus hardware projects.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Wednesdays · 4:00 PM · Computer Lab 3</span>
+                  <span><strong>Upcoming:</strong> HackBrainz 2026 Inter-School Hackathon</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">Lead: Advait Saxena</span>
+                <span class="badge badge-blue" style="cursor: pointer;">View Roster</span>
+              </div>
+            </div>
+
+            <!-- Club 3: Debate Society -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-blue">House Delegate</span>
+                  <span class="subtext" style="font-size: 0.75rem;">35 Members</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Debate Society</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Parliamentary debating, Model United Nations diplomacy training, public rhetoric, and policy mock hearings.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Mondays · 3:45 PM · Audio-Visual Hall</span>
+                  <span><strong>Upcoming:</strong> National Schools MUN Delegation Prep</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">Lead: Maya Krishnan</span>
+                <span class="badge badge-beige" style="cursor: pointer;">Debate Schedule</span>
+              </div>
+            </div>
+
+            <!-- Club 4: Student Council -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-sage">Class XI Representative</span>
+                  <span class="subtext" style="font-size: 0.75rem;">22 Representatives</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Student Council</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Student body representation, institutional grievance consultation, house cup stewarding, and campus green audits.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Fridays · 2:30 PM · Council Chambers</span>
+                  <span><strong>Upcoming:</strong> Academic Directorate Joint Hearing</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">President: Raghav M.</span>
+                <span class="badge badge-blue" style="cursor: pointer;">Minutes of Meeting</span>
+              </div>
+            </div>
+
+            <!-- Club 5: Entrepreneurship Club -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-beige">Venture Pitcher</span>
+                  <span class="subtext" style="font-size: 0.75rem;">41 Members</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Entrepreneurship Club</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Business Model Canvas workshops, seed grant competitions, prototype reviews, and alumni startup founder mentorship.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Saturdays · 10:00 AM · Innovation Lab</span>
+                  <span><strong>Upcoming:</strong> Pitch Pad Demo Day Presentations</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">Lead: Sara Chawla</span>
+                <span class="badge badge-sage" style="cursor: pointer;" onclick="navigateTo('page-student-pitch')">Jump to Pitch Pad</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+        
+        <!-- STUDENT_PAGES_END -->
+
+        <!-- TEACHER_PAGES_START -->
+        <!-- 
+          Teacher agent: Inject Teacher role pages below.
+          Example:
+          <section id="page-teacher-classes" class="os-page">
+            <div class="card">Teacher Classroom Management Content</div>
+          </section>
+        -->
+        <!-- TEACHER_PAGES_END -->
+
+        <!-- DIRECTOR_PAGES_START -->
+        <!-- 
+          Director agent: Inject Director / Admin role pages below.
+          Example:
+          <section id="page-director-analytics" class="os-page">
+            <div class="card">Institutional Performance Content</div>
+          </section>
+        -->
+        <!-- DIRECTOR_PAGES_END -->
+
+      </main>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       COMMAND LAUNCHER PALETTE (⌘K / Ctrl+K)
+       ========================================================================= -->
+  <div class="cmd-overlay" id="cmd-overlay" onclick="handleCmdOverlayClick(event)">
+    <div class="cmd-palette" id="cmd-palette">
+      <div class="cmd-search-row">
+        <i data-lucide="search" style="width: 18px; height: 18px; color: var(--color-ink-subtle);"></i>
+        <input 
+          type="text" 
+          id="cmd-input" 
+          class="cmd-search-input" 
+          placeholder="Type a page name, destination, or command…" 
+          autocomplete="off"
+        />
+        <kbd class="cmd-kbd-badge">ESC</kbd>
+      </div>
+
+      <div class="cmd-results" id="cmd-results-list">
+        <!-- Rendered dynamically from current role's navigable pages -->
+      </div>
+
+      <div class="cmd-footer">
+        <div class="cmd-hints">
+          <span><kbd class="cmd-kbd-badge">↑</kbd> <kbd class="cmd-kbd-badge">↓</kbd> Navigate</span>
+          <span><kbd class="cmd-kbd-badge">↵</kbd> Select</span>
+        </div>
+        <span>BrainzOS Core Shell</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       BIOMETRIC AUTHENTICATION SIMULATOR MODAL
+       ========================================================================= -->
+  <div class="biometric-overlay" id="biometric-overlay">
+    <div class="biometric-modal">
+      <div class="bio-sensor-ring" id="bio-sensor-ring">
+        <div class="bio-laser-beam" id="bio-laser"></div>
+        <i data-lucide="fingerprint" class="bio-icon" id="bio-icon-scan"></i>
+        <i data-lucide="check-circle-2" class="bio-success-icon" id="bio-icon-check"></i>
+      </div>
+      <h3 class="bio-status-title" id="bio-status-title">Institutional Biometrics</h3>
+      <p class="bio-status-desc" id="bio-status-desc">Scanning registered hardware key & credentials…</p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       FOUNDATION JAVASCRIPT STATE ENGINE & EXTENSION APIS
+       ========================================================================= -->
+  <script>
+    /* =========================================================================
+       1. GLOBAL STATE OBJECT
+       ========================================================================= */
+    const STATE = {
+      currentUser: null,       // Set on login: { name, email, role, roleLabel, initials }
+      currentPage: 'os-shell-welcome', // Active page ID
+      cmdSelectedIndex: 0,     // Keyboard navigation index in command launcher
+      isSidebarOpenMobile: false,
+    };
+
+    /* =========================================================================
+       2. ROLE NAVIGATION REGISTRY (EXTENSION POINT FOR FUTURE AGENTS)
+       Other agents: Simply push your pages and nav items into the respective
+       array below. The sidebar and ⌘K launcher will automatically reflect them!
+       ========================================================================= */
+    const ROLE_NAV_CONFIG = {
+      // -----------------------------------------------------------------------
+      // STUDENT ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      student: [
+        /* <!-- STUDENT_NAV_START --> */
+        { id: 'student-dashboard', label: 'Dashboard', icon: 'layout-dashboard', pageId: 'page-student-dashboard' },
+        { id: 'student-timetable', label: 'Timetable', icon: 'calendar', pageId: 'page-student-timetable' },
+        { id: 'student-assignments', label: 'Assignments', icon: 'check-square', pageId: 'page-student-assignments' },
+        { id: 'student-pass', label: 'Digital Pass', icon: 'credit-card', pageId: 'page-student-pass' },
+        { id: 'student-pitch', label: 'Pitch Pad', icon: 'rocket', pageId: 'page-student-pitch' },
+        { id: 'student-clubs', label: 'Clubs & Houses', icon: 'shield', pageId: 'page-student-clubs' }
+        /* <!-- STUDENT_NAV_END --> */
+      ],
+
+      // -----------------------------------------------------------------------
+      // TEACHER ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      teacher: [
+        /* <!-- TEACHER_NAV_START --> */
+        // Examples for teacher agent to extend:
+        // { id: 'teacher-classes', label: 'My Classrooms', icon: 'users', pageId: 'page-teacher-classes' },
+        // { id: 'teacher-gradebook', label: 'Gradebook', icon: 'clipboard-check', pageId: 'page-teacher-gradebook' },
+        // { id: 'teacher-attendance', label: 'Attendance Roll', icon: 'check-square', pageId: 'page-teacher-attendance' },
+        /* <!-- TEACHER_NAV_END --> */
+      ],
+
+      // -----------------------------------------------------------------------
+      // DIRECTOR / ADMIN ROLE NAV ITEMS
+      // -----------------------------------------------------------------------
+      director: [
+        /* <!-- DIRECTOR_NAV_START --> */
+        // Examples for director agent to extend:
+        // { id: 'director-analytics', label: 'Institutional Health', icon: 'activity', pageId: 'page-director-analytics' },
+        // { id: 'director-staff', label: 'Faculty Management', icon: 'briefcase', pageId: 'page-director-staff' },
+        // { id: 'director-audit', label: 'Regulatory & Audit', icon: 'shield-check', pageId: 'page-director-audit' },
+        /* <!-- DIRECTOR_NAV_END --> */
+      ]
+    };
+
+    /* Default Preset Demo Profiles */
+    const DEMO_PROFILES = {
+      student: {
+        name: 'Ishaan Kalra',
+        email: 'student@brainz.edu',
+        role: 'student',
+        roleLabel: 'Student',
+        initials: 'IK',
+        grade: 'Class XI-B · Stream Commerce',
+        classInfo: 'Class XI-B',
+        stream: 'Commerce',
+        house: 'Orion',
+        studentId: 'BOS-XIB-041'
+      },
+      teacher: {
+        name: 'Dr. Sarah Mitchell',
+        email: 'teacher@brainz.edu',
+        role: 'teacher',
+        roleLabel: 'Teacher',
+        initials: 'SM',
+        grade: 'Senior Faculty · Dept. of Physics'
+      },
+      director: {
+        name: 'Prof. Arvind Ramanathan',
+        email: 'director@brainz.edu',
+        role: 'director',
+        roleLabel: 'Director / Admin',
+        initials: 'AR',
+        grade: 'Institutional Directorate'
+      }
+    };
+
+    /* =========================================================================
+       3. LIVE EMAIL ROLE DETECTION
+       ========================================================================= */
+    const emailInput = document.getElementById('school-email');
+    const detectorBox = document.getElementById('role-detector-box');
+    const detectorText = document.getElementById('role-detector-text');
+    const continueBtn = document.getElementById('continue-btn');
+
+    /**
+     * Determines role strictly based on email string.
+     * Rules:
+     * - student@ or contains student -> 'student'
+     * - teacher@ or contains teacher/faculty -> 'teacher'
+     * - director@ or admin@ or contains director/admin -> 'director'
+     */
+    function detectRoleFromEmail(emailStr) {
+      const normalized = (emailStr || '').trim().toLowerCase();
+      if (!normalized) return null;
+
+      if (normalized.includes('student')) {
+        return 'student';
+      }
+      if (normalized.includes('teacher') || normalized.includes('faculty')) {
+        return 'teacher';
+      }
+      if (normalized.includes('director') || normalized.includes('admin') || normalized.includes('head')) {
+        return 'director';
+      }
+      return null;
+    }
+
+    // Attach input event listener for live responsive role detection
+    emailInput.addEventListener('input', (e) => {
+      const detectedRole = detectRoleFromEmail(e.target.value);
+      updateRoleIndicatorUI(detectedRole);
+    });
+
+    function updateRoleIndicatorUI(role) {
+      detectorText.className = 'detection-result';
+
+      if (!role) {
+        detectorBox.classList.remove('detected');
+        detectorText.innerHTML = '<span class="role-dot"></span><span>Awaiting school email…</span>';
+        continueBtn.disabled = true;
+        return;
+      }
+
+      detectorBox.classList.add('detected');
+      continueBtn.disabled = false;
+
+      if (role === 'student') {
+        detectorText.classList.add('active', 'student');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Student</strong>';
+      } else if (role === 'teacher') {
+        detectorText.classList.add('active', 'teacher');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Teacher</strong>';
+      } else if (role === 'director') {
+        detectorText.classList.add('active', 'director');
+        detectorText.innerHTML = '<span class="role-dot"></span><strong>ROLE DETECTED — ● Director / Admin</strong>';
+      }
+    }
+
+    /* =========================================================================
+       4. AUTHENTICATION & LOGIN WORKFLOW
+       ========================================================================= */
+    function handleLoginSubmit(event) {
+      if (event) event.preventDefault();
+
+      const emailVal = emailInput.value.trim();
+      const detectedRole = detectRoleFromEmail(emailVal);
+
+      if (!detectedRole) {
+        alert('Please enter a valid school email containing student, teacher, or director/admin.');
+        return;
+      }
+
+      // Build or retrieve user session
+      let user = DEMO_PROFILES[detectedRole];
+      if (emailVal.toLowerCase() !== user.email) {
+        // Derive name from custom email
+        const localPart = emailVal.split('@')[0].replace(/[._-]/g, ' ');
+        const formattedName = localPart
+          .split(' ')
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(' ');
+        
+        user = {
+          name: formattedName || user.name,
+          email: emailVal,
+          role: detectedRole,
+          roleLabel: detectedRole === 'director' ? 'Director / Admin' : (detectedRole.charAt(0).toUpperCase() + detectedRole.slice(1)),
+          initials: (formattedName || user.name).split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+        };
+      }
+
+      executeLogin(user);
+    }
+
+    function executeLogin(userObj) {
+      STATE.currentUser = userObj;
+
+      // Update sidebar and topbar user credentials
+      document.getElementById('sidebar-user-name').textContent = userObj.name;
+      document.getElementById('sidebar-user-badge').textContent = userObj.roleLabel;
+      document.getElementById('sidebar-user-avatar').textContent = userObj.initials;
+
+      document.getElementById('topbar-user-name').textContent = userObj.name;
+      document.getElementById('topbar-user-role').textContent = userObj.roleLabel;
+      document.getElementById('topbar-user-avatar').textContent = userObj.initials;
+
+      // Update welcome view heading
+      document.getElementById('welcome-heading').textContent = `Welcome, ${userObj.name}`;
+      document.getElementById('welcome-subtext').textContent = `Operating workspace initialized for ${userObj.roleLabel}. Modules registered for your academic tier will populate here.`;
+
+      // Hide login, show app shell
+      document.getElementById('login-viewport').classList.add('hidden-view');
+      document.getElementById('app-viewport').classList.add('active-view');
+
+      // Build sidebar navigation for this role
+      renderSidebarNav();
+
+      // Ensure Lucide icons are initialized
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+
+      // Navigate to the first available page for this role if any, or shell welcome
+      const roleNavs = ROLE_NAV_CONFIG[userObj.role] || [];
+      if (roleNavs.length > 0 && document.getElementById(roleNavs[0].pageId)) {
+        navigateTo(roleNavs[0].pageId);
+      } else {
+        navigateTo('os-shell-welcome');
+      }
+    }
+
+    /**
+     * Demo Biometric Scanner Simulation
+     */
+    function startBiometricLogin() {
+      const bioOverlay = document.getElementById('biometric-overlay');
+      const bioLaser = document.getElementById('bio-laser');
+      const iconScan = document.getElementById('bio-icon-scan');
+      const iconCheck = document.getElementById('bio-icon-check');
+      const statusTitle = document.getElementById('bio-status-title');
+      const statusDesc = document.getElementById('bio-status-desc');
+
+      // Reset modal visuals
+      bioLaser.style.display = 'block';
+      iconScan.style.display = 'block';
+      iconCheck.style.display = 'none';
+      statusTitle.textContent = 'Institutional Biometrics';
+      statusDesc.textContent = 'Scanning registered hardware key & credentials…';
+      bioOverlay.classList.add('active');
+
+      if (window.lucide) lucide.createIcons();
+
+      // Simulate biometric validation delay
+      setTimeout(() => {
+        bioLaser.style.display = 'none';
+        iconScan.style.display = 'none';
+        iconCheck.style.display = 'block';
+        statusTitle.textContent = 'Identity Verified';
+        statusDesc.textContent = 'Logging in as Demo Student (Ishaan Kalra)…';
+        if (window.lucide) lucide.createIcons();
+
+        setTimeout(() => {
+          bioOverlay.classList.remove('active');
+          executeLogin(DEMO_PROFILES.student);
+        }, 600);
+      }, 1200);
+    }
+
+    function logoutUser() {
+      STATE.currentUser = null;
+      STATE.currentPage = 'os-shell-welcome';
+
+      // Reset form
+      emailInput.value = '';
+      updateRoleIndicatorUI(null);
+
+      // Swap views
+      document.getElementById('app-viewport').classList.remove('active-view');
+      document.getElementById('login-viewport').classList.remove('hidden-view');
+    }
+
+    /* =========================================================================
+       5. PAGE NAVIGATION ROUTER (NO RELOAD, VANILLA JS STATE)
+       ========================================================================= */
+    /**
+     * Primary function for switching pages within BrainzOS.
+     * Exposed globally so all subsequent role agents can call it freely.
+     * @param {string} pageId - The ID of the target page container.
+     */
+    function navigateTo(pageId) {
+      const targetEl = document.getElementById(pageId);
+
+      // Hide all pages
+      const allPages = document.querySelectorAll('.os-page');
+      allPages.forEach(p => p.classList.remove('active'));
+
+      // If page exists, show it; otherwise fallback to the shell welcome placeholder
+      if (targetEl) {
+        targetEl.classList.add('active');
+        STATE.currentPage = pageId;
+      } else {
+        const welcomeEl = document.getElementById('os-shell-welcome');
+        if (welcomeEl) welcomeEl.classList.add('active');
+        STATE.currentPage = 'os-shell-welcome';
+      }
+
+      // Update sidebar nav active state
+      const navButtons = document.querySelectorAll('.nav-btn');
+      navButtons.forEach(btn => {
+        if (btn.getAttribute('data-page-id') === pageId) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Close mobile drawer if open
+      if (STATE.isSidebarOpenMobile) {
+        toggleMobileSidebar(false);
+      }
+
+      // Scroll top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Refresh icons in case new DOM elements are visible
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    /* =========================================================================
+       6. SIDEBAR NAVIGATION GENERATOR
+       ========================================================================= */
+    function renderSidebarNav() {
+      const navContainer = document.getElementById('sidebar-nav-container');
+      navContainer.innerHTML = '';
+
+      if (!STATE.currentUser) return;
+
+      const role = STATE.currentUser.role;
+      const navList = ROLE_NAV_CONFIG[role] || [];
+
+      // Category Heading
+      const catHeading = document.createElement('div');
+      catHeading.className = 'nav-category';
+      catHeading.textContent = `${STATE.currentUser.roleLabel} Modules`;
+      navContainer.appendChild(catHeading);
+
+      if (navList.length === 0) {
+        const emptyNotice = document.createElement('div');
+        emptyNotice.style.padding = '12px 14px';
+        emptyNotice.style.fontSize = '12px';
+        emptyNotice.style.color = 'var(--color-ink-subtle)';
+        emptyNotice.style.fontStyle = 'italic';
+        emptyNotice.textContent = 'Nav items will be registered by role agent.';
+        navContainer.appendChild(emptyNotice);
+      } else {
+        navList.forEach(item => {
+          const btn = document.createElement('button');
+          btn.className = 'nav-btn';
+          btn.setAttribute('data-page-id', item.pageId);
+          btn.onclick = () => navigateTo(item.pageId);
+
+          btn.innerHTML = `
+            <i data-lucide="${item.icon || 'circle'}"></i>
+            <span>${item.label}</span>
+          `;
+          navContainer.appendChild(btn);
+        });
+      }
+
+      // Utility / Shell Overview link
+      const systemCategory = document.createElement('div');
+      systemCategory.className = 'nav-category';
+      systemCategory.style.marginTop = '16px';
+      systemCategory.textContent = 'System';
+      navContainer.appendChild(systemCategory);
+
+      const overviewBtn = document.createElement('button');
+      overviewBtn.className = 'nav-btn';
+      overviewBtn.setAttribute('data-page-id', 'os-shell-welcome');
+      overviewBtn.onclick = () => navigateTo('os-shell-welcome');
+      overviewBtn.innerHTML = `
+        <i data-lucide="info"></i>
+        <span>System Status</span>
+      `;
+      navContainer.appendChild(overviewBtn);
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    function toggleMobileSidebar(forceState) {
+      const sidebar = document.getElementById('app-sidebar');
+      if (typeof forceState === 'boolean') {
+        STATE.isSidebarOpenMobile = forceState;
+      } else {
+        STATE.isSidebarOpenMobile = !STATE.isSidebarOpenMobile;
+      }
+
+      if (STATE.isSidebarOpenMobile) {
+        sidebar.classList.add('mobile-open');
+      } else {
+        sidebar.classList.remove('mobile-open');
+      }
+    }
+
+    /* =========================================================================
+       7. COMMAND LAUNCHER ENGINE (⌘K / Ctrl+K)
+       ========================================================================= */
+    const cmdOverlay = document.getElementById('cmd-overlay');
+    const cmdInput = document.getElementById('cmd-input');
+    const cmdResultsList = document.getElementById('cmd-results-list');
+
+    function openCommandLauncher() {
+      if (!STATE.currentUser) return;
+      cmdOverlay.classList.add('active');
+      cmdInput.value = '';
+      STATE.cmdSelectedIndex = 0;
+      filterCommandResults('');
+      setTimeout(() => cmdInput.focus(), 50);
+    }
+
+    function closeCommandLauncher() {
+      cmdOverlay.classList.remove('active');
+      cmdInput.blur();
+    }
+
+    function handleCmdOverlayClick(e) {
+      if (e.target === cmdOverlay) {
+        closeCommandLauncher();
+      }
+    }
+
+    // Global Keyboard Shortcuts (⌘K, Ctrl+K, Escape)
+    document.addEventListener('keydown', (e) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        if (cmdOverlay.classList.contains('active')) {
+          closeCommandLauncher();
+        } else {
+          openCommandLauncher();
+        }
+      } else if (e.key === 'Escape' && cmdOverlay.classList.contains('active')) {
+        closeCommandLauncher();
+      }
+    });
+
+    // Command palette arrow-key and enter navigation
+    cmdInput.addEventListener('keydown', (e) => {
+      const items = cmdResultsList.querySelectorAll('.cmd-item');
+      if (!items.length) return;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        STATE.cmdSelectedIndex = (STATE.cmdSelectedIndex + 1) % items.length;
+        highlightCmdItem(items);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        STATE.cmdSelectedIndex = (STATE.cmdSelectedIndex - 1 + items.length) % items.length;
+        highlightCmdItem(items);
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const selected = items[STATE.cmdSelectedIndex];
+        if (selected) {
+          selected.click();
+        }
+      }
+    });
+
+    function highlightCmdItem(items) {
+      items.forEach((it, idx) => {
+        if (idx === STATE.cmdSelectedIndex) {
+          it.classList.add('selected');
+          it.scrollIntoView({ block: 'nearest' });
+        } else {
+          it.classList.remove('selected');
+        }
+      });
+    }
+
+    cmdInput.addEventListener('input', (e) => {
+      STATE.cmdSelectedIndex = 0;
+      filterCommandResults(e.target.value);
+    });
+
+    function filterCommandResults(query) {
+      cmdResultsList.innerHTML = '';
+      const q = query.trim().toLowerCase();
+
+      if (!STATE.currentUser) return;
+
+      const role = STATE.currentUser.role;
+      const roleNavs = ROLE_NAV_CONFIG[role] || [];
+
+      // Combine role pages and system actions
+      const allActions = [
+        ...roleNavs.map(item => ({
+          label: item.label,
+          group: `${STATE.currentUser.roleLabel} Navigation`,
+          icon: item.icon || 'arrow-right',
+          action: () => navigateTo(item.pageId)
+        })),
+        {
+          label: 'System Status & Shell Overview',
+          group: 'Core System',
+          icon: 'info',
+          action: () => navigateTo('os-shell-welcome')
+        },
+        {
+          label: 'Sign Out / Lock Session',
+          group: 'Session',
+          icon: 'log-out',
+          action: () => {
+            closeCommandLauncher();
+            logoutUser();
+          }
+        }
+      ];
+
+      const filtered = allActions.filter(item => 
+        item.label.toLowerCase().includes(q) || 
+        item.group.toLowerCase().includes(q)
+      );
+
+      if (filtered.length === 0) {
+        cmdResultsList.innerHTML = `
+          <div class="cmd-empty">
+            No matching destinations or commands found for "${query}".
+          </div>
+        `;
+        return;
+      }
+
+      let currentGroup = '';
+      filtered.forEach((item, index) => {
+        if (item.group !== currentGroup) {
+          currentGroup = item.group;
+          const groupTitle = document.createElement('div');
+          groupTitle.className = 'cmd-group-title';
+          groupTitle.textContent = currentGroup;
+          cmdResultsList.appendChild(groupTitle);
+        }
+
+        const row = document.createElement('div');
+        row.className = `cmd-item ${index === 0 ? 'selected' : ''}`;
+        row.innerHTML = `
+          <div class="cmd-item-left">
+            <i data-lucide="${item.icon}"></i>
+            <span>${item.label}</span>
+          </div>
+          <span class="cmd-kbd-badge">Jump</span>
+        `;
+        row.onclick = () => {
+          item.action();
+          closeCommandLauncher();
+        };
+        cmdResultsList.appendChild(row);
+      });
+
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    }
+
+    /* =========================================================================
+       8. STUDENT MODULES STATE ENGINE & LOGIC
+       ========================================================================= */
+
+    /* -------------------------------------------------------------------------
+       A. TIMETABLE DATA & REAL-TIME ENGINE
+       ------------------------------------------------------------------------- */
+    const TIMETABLE_DATA = [
+      { id: 1, periodNum: 'Period 1', name: 'English Core', code: 'ENG-101', teacher: 'Ms. Ananya Sen', room: 'Room 204', startH: 8, startM: 30, endH: 9, endM: 20 },
+      { id: 2, periodNum: 'Period 2', name: 'Economics', code: 'ECO-201', teacher: 'Mr. Rajiv Mehta', room: 'Room 208', startH: 9, startM: 25, endH: 10, endM: 15 },
+      { id: 3, periodNum: 'Period 3', name: 'Accountancy', code: 'ACC-301', teacher: 'Mrs. Sunita Sharma', room: 'Room 112', startH: 10, startM: 20, endH: 11, endM: 10 },
+      { id: 4, periodNum: 'Period 4', name: 'Political Science', code: 'POL-401', teacher: 'Dr. Kabir Roy', room: 'Room 301', startH: 11, startM: 15, endH: 12, endM: 5 },
+      { id: 5, periodNum: 'Recess', name: 'Break', code: 'BRK-001', teacher: 'Campus Supervisors', room: 'Central Quad & Cafeteria', startH: 12, startM: 5, endH: 12, endM: 45, isBreak: true },
+      { id: 6, periodNum: 'Period 5', name: 'Business Studies', code: 'BST-501', teacher: 'Mr. David Vance', room: 'Room 210', startH: 12, startM: 45, endH: 13, endM: 35 }
+    ];
+
+    let timetableDetectionMode = 'live'; // 'live' | 'sim'
+    let simulatedSecondTicker = 24 * 60 + 18; // Simulated 24m 18s ticker for test demo mode
+
+    function setTimetableMode(mode) {
+      timetableDetectionMode = mode;
+      const pillLive = document.getElementById('mode-pill-live');
+      const pillSim = document.getElementById('mode-pill-sim');
+      const hint = document.getElementById('timetable-mode-hint');
+
+      if (mode === 'live') {
+        pillLive.classList.add('active');
+        pillSim.classList.remove('active');
+        hint.textContent = 'Evaluating current system clock against period start & end intervals.';
+      } else {
+        pillLive.classList.remove('active');
+        pillSim.classList.add('active');
+        hint.textContent = 'Active simulation: Period 3 (Accountancy · 10:20 - 11:10 AM) active with live countdown.';
+      }
+      updateTimetableState();
+    }
+
+    function formatTime12(h, m) {
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      const hr = h % 12 === 0 ? 12 : h % 12;
+      const min = m < 10 ? '0' + m : m;
+      return `${hr}:${min} ${ampm}`;
+    }
+
+    function updateTimetableState() {
+      const now = new Date();
+      const realClockEl = document.getElementById('timetable-real-clock');
+      if (realClockEl) {
+        realClockEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      }
+
+      // Compute current time in minutes from midnight
+      let currentMinutes;
+      if (timetableDetectionMode === 'live') {
+        currentMinutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+      } else {
+        // In sim mode: 10:45 AM + offset corresponding to ticking simulatedSecondTicker
+        const elapsedSimMins = (50 * 60 - simulatedSecondTicker) / 60;
+        currentMinutes = (10 * 60 + 20) + elapsedSimMins;
+      }
+
+      let activePeriod = null;
+      let activeRemainingSecs = 0;
+      let nextUpcomingPeriod = null;
+
+      // Analyze each period
+      const computedPeriods = TIMETABLE_DATA.map(p => {
+        const startTotal = p.startH * 60 + p.startM;
+        const endTotal = p.endH * 60 + p.endM;
+        const durationSecs = (endTotal - startTotal) * 60;
+
+        let status = 'UPCOMING';
+        let remainingSecs = 0;
+
+        if (currentMinutes >= endTotal) {
+          status = 'COMPLETE';
+        } else if (currentMinutes >= startTotal && currentMinutes < endTotal) {
+          status = 'LIVE NOW';
+          remainingSecs = Math.max(0, Math.floor((endTotal - currentMinutes) * 60));
+          activePeriod = p;
+          activeRemainingSecs = remainingSecs;
+        } else {
+          status = 'UPCOMING';
+          if (!nextUpcomingPeriod) {
+            nextUpcomingPeriod = p;
+          }
+        }
+
+        return {
+          ...p,
+          status,
+          remainingSecs,
+          durationSecs,
+          timeFormatted: `${formatTime12(p.startH, p.startM)} – ${formatTime12(p.endH, p.endM)}`
+        };
+      });
+
+      // If no period is currently live in live clock mode (e.g. night time or before school),
+      // we default hero display to either next upcoming or first period, with appropriate status
+      const heroPeriod = activePeriod 
+        ? computedPeriods.find(p => p.id === activePeriod.id)
+        : (nextUpcomingPeriod ? computedPeriods.find(p => p.id === nextUpcomingPeriod.id) : computedPeriods[0]);
+
+      // Update Hero Highlight Card
+      const heroNameEl = document.getElementById('hero-period-name');
+      const heroMetaEl = document.getElementById('hero-period-meta');
+      const heroTimeEl = document.getElementById('hero-period-time');
+      const heroBadgeText = document.getElementById('hero-period-status-text');
+      const heroTimerEl = document.getElementById('hero-countdown-timer');
+      const heroProgressEl = document.getElementById('hero-countdown-progress');
+
+      if (heroPeriod && heroNameEl) {
+        heroNameEl.textContent = heroPeriod.name;
+        heroMetaEl.textContent = `${heroPeriod.room} · ${heroPeriod.teacher} · CBSE Secondary Curriculum`;
+        heroTimeEl.textContent = heroPeriod.timeFormatted;
+
+        if (heroPeriod.status === 'LIVE NOW') {
+          heroBadgeText.textContent = 'LIVE NOW';
+          const mins = Math.floor(heroPeriod.remainingSecs / 60);
+          const secs = heroPeriod.remainingSecs % 60;
+          const fmtMins = mins < 10 ? '0' + mins : mins;
+          const fmtSecs = secs < 10 ? '0' + secs : secs;
+          heroTimerEl.textContent = `${fmtMins}:${fmtSecs}`;
+          
+          const progressPct = Math.min(100, Math.max(0, ((heroPeriod.durationSecs - heroPeriod.remainingSecs) / heroPeriod.durationSecs) * 100));
+          if (heroProgressEl) heroProgressEl.style.width = `${progressPct.toFixed(1)}%`;
+        } else if (heroPeriod.status === 'UPCOMING') {
+          heroBadgeText.textContent = 'NEXT UP';
+          heroTimerEl.textContent = 'Starts Soon';
+          if (heroProgressEl) heroProgressEl.style.width = '0%';
+        } else {
+          heroBadgeText.textContent = 'SESSION ENDED';
+          heroTimerEl.textContent = '00:00';
+          if (heroProgressEl) heroProgressEl.style.width = '100%';
+        }
+      }
+
+      // Render Full Timetable Timeline list
+      const fullListEl = document.getElementById('timetable-full-list');
+      if (fullListEl) {
+        fullListEl.innerHTML = computedPeriods.map(p => {
+          const isLive = p.status === 'LIVE NOW';
+          const isComplete = p.status === 'COMPLETE';
+          let statusBadgeHtml = '';
+
+          if (isLive) {
+            const mins = Math.floor(p.remainingSecs / 60);
+            const secs = p.remainingSecs % 60;
+            const fmtM = mins < 10 ? '0' + mins : mins;
+            const fmtS = secs < 10 ? '0' + secs : secs;
+            statusBadgeHtml = `
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="live-countdown-badge">
+                  <span class="status-dot"></span>
+                  <span>${fmtM}:${fmtS} remaining</span>
+                </span>
+                <span class="badge badge-sage">LIVE NOW</span>
+              </div>
+            `;
+          } else if (isComplete) {
+            statusBadgeHtml = `<span class="badge badge-beige">Complete</span>`;
+          } else {
+            statusBadgeHtml = `<span class="badge" style="background: rgba(28,35,43,0.06); color: var(--color-ink-muted);">Upcoming</span>`;
+          }
+
+          return `
+            <div class="period-item ${isLive ? 'live-period' : ''} ${isComplete ? 'complete-period' : ''}">
+              <div class="period-time-col">
+                <span class="period-num">${p.periodNum}</span>
+                <span>${p.timeFormatted}</span>
+              </div>
+              <div class="period-main-col">
+                <div class="period-subject-name">
+                  <span>${p.name}</span>
+                  ${p.isBreak ? '<span class="badge badge-beige" style="font-size: 0.65rem;">Recess</span>' : ''}
+                </div>
+                <div class="period-meta-text">${p.teacher} · ${p.room}</div>
+              </div>
+              <div>${statusBadgeHtml}</div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // Render Dashboard Today's Timetable List
+      const dashListEl = document.getElementById('dashboard-period-list');
+      if (dashListEl) {
+        dashListEl.innerHTML = computedPeriods.map(p => {
+          const isLive = p.status === 'LIVE NOW';
+          const isComplete = p.status === 'COMPLETE';
+          
+          let badgeHtml = '';
+          if (isLive) {
+            badgeHtml = `<span class="badge badge-sage"><span class="status-dot"></span>LIVE</span>`;
+          } else if (isComplete) {
+            badgeHtml = `<span class="badge badge-beige">Done</span>`;
+          } else {
+            badgeHtml = `<span class="subtext" style="font-size: 0.75rem;">Upcoming</span>`;
+          }
+
+          return `
+            <div class="period-item ${isLive ? 'live-period' : ''} ${isComplete ? 'complete-period' : ''}" style="padding: 10px 14px;">
+              <div style="width: 100px; font-size: var(--text-xs); font-weight: 600; color: var(--color-ink-muted);">
+                ${formatTime12(p.startH, p.startM)}
+              </div>
+              <div style="flex: 1; padding: 0 10px;">
+                <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-ink);">${p.name}</div>
+                <div class="subtext" style="font-size: 0.7rem;">${p.room} · ${p.teacher}</div>
+              </div>
+              <div>${badgeHtml}</div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    // Start Real-Time Countdown Tick Loop
+    setInterval(() => {
+      if (timetableDetectionMode === 'sim') {
+        if (simulatedSecondTicker > 0) {
+          simulatedSecondTicker--;
+        } else {
+          simulatedSecondTicker = 50 * 60; // loop period
+        }
+      }
+      updateTimetableState();
+    }, 1000);
+
+    /* -------------------------------------------------------------------------
+       B. ASSIGNMENTS INTERACTIVE CHECKLIST & DASHBOARD SYNC
+       ------------------------------------------------------------------------- */
+    const ASSIGNMENTS_DATA = [
+      { id: 'asg-1', title: 'Market Structure Case Analysis', subject: 'Business Studies', stream: 'commerce', dueText: 'Tomorrow · 9:00 AM', tag: 'High Priority', weight: '15% Term Grade', completed: false },
+      { id: 'asg-2', title: 'Double Entry Ledger Reconciliation', subject: 'Accountancy', stream: 'commerce', dueText: 'In 3 Days · 21 Sep', tag: 'Problem Set', weight: '10% Weight', completed: false },
+      { id: 'asg-3', title: 'Macroeconomic Inflation & RBI Policy', subject: 'Economics', stream: 'commerce', dueText: 'In 5 Days · 23 Sep', tag: 'Term Essay', weight: '15% Weight', completed: false },
+      { id: 'asg-4', title: 'Shakespearean Rhetoric & Prose Analysis', subject: 'English Core', stream: 'humanities', dueText: 'In 6 Days · 24 Sep', tag: 'Critique', weight: '10% Weight', completed: false },
+      { id: 'asg-5', title: 'Indian Federalism Constitutional Review', subject: 'Political Science', stream: 'humanities', dueText: 'In 8 Days · 26 Sep', tag: 'Case Review', weight: '10% Weight', completed: false },
+      { id: 'asg-6', title: 'Business Plan Pitch Deck Outline', subject: 'Commerce Club', stream: 'commerce', dueText: 'In 10 Days · 28 Sep', tag: 'Extracurricular', weight: 'Society Merit', completed: false },
+      { id: 'asg-7', title: 'Cash Flow Statement Worksheet (Part II)', subject: 'Accountancy', stream: 'commerce', dueText: 'In 12 Days · 30 Sep', tag: 'Exercise', weight: '10% Weight', completed: false },
+      { id: 'asg-8', title: 'Monetary Policy & Commercial Banking Notes', subject: 'Economics', stream: 'commerce', dueText: 'In 14 Days · 2 Oct', tag: 'Reading Summary', weight: '5% Weight', completed: false }
+    ];
+
+    let activeAsgFilter = 'all';
+    let asgSearchQuery = '';
+
+    function toggleAssignment(asgId) {
+      const item = ASSIGNMENTS_DATA.find(a => a.id === asgId);
+      if (!item) return;
+
+      item.completed = !item.completed;
+      renderAssignments();
+      updateAssignmentMetrics();
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function updateAssignmentMetrics() {
+      const total = ASSIGNMENTS_DATA.length;
+      const completed = ASSIGNMENTS_DATA.filter(a => a.completed).length;
+      const pending = total - completed;
+
+      // Update Dashboard live stat counter
+      const dashCountEl = document.getElementById('dash-assignments-count');
+      const dashSubEl = document.getElementById('dash-assignments-sub');
+      if (dashCountEl) {
+        dashCountEl.textContent = pending < 10 ? '0' + pending : String(pending);
+      }
+      if (dashSubEl) {
+        dashSubEl.textContent = pending === 0 ? 'All coursework submitted!' : `${pending} active tasks pending`;
+      }
+
+      // Update Assignments page stat cards
+      const asgPendingEl = document.getElementById('asg-pending-count');
+      const asgCompletedEl = document.getElementById('asg-completed-count');
+      const asgPctEl = document.getElementById('asg-completion-pct');
+
+      if (asgPendingEl) asgPendingEl.textContent = pending < 10 ? '0' + pending : String(pending);
+      if (asgCompletedEl) asgCompletedEl.textContent = completed < 10 ? '0' + completed : String(completed);
+      if (asgPctEl) {
+        const pct = Math.round((completed / total) * 100);
+        asgPctEl.textContent = `${pct}% Completed`;
+      }
+
+      // Update filter tab badge counts
+      const countAll = document.getElementById('count-all');
+      const countPending = document.getElementById('count-pending');
+      const countCompleted = document.getElementById('count-completed');
+      if (countAll) countAll.textContent = total;
+      if (countPending) countPending.textContent = pending;
+      if (countCompleted) countCompleted.textContent = completed;
+    }
+
+    function filterAssignments(filterType) {
+      activeAsgFilter = filterType;
+      document.querySelectorAll('.asg-filter-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById(`asg-filter-${filterType}`);
+      if (activeBtn) activeBtn.classList.add('active');
+      renderAssignments();
+    }
+
+    function handleAssignmentSearch(query) {
+      asgSearchQuery = (query || '').toLowerCase().trim();
+      renderAssignments();
+    }
+
+    function renderAssignments() {
+      const container = document.getElementById('assignments-list-container');
+      if (!container) return;
+
+      const filtered = ASSIGNMENTS_DATA.filter(a => {
+        // Filter by tab
+        if (activeAsgFilter === 'pending' && a.completed) return false;
+        if (activeAsgFilter === 'completed' && !a.completed) return false;
+        if (activeAsgFilter === 'commerce' && a.stream !== 'commerce') return false;
+
+        // Filter by search
+        if (asgSearchQuery) {
+          const matchTitle = a.title.toLowerCase().includes(asgSearchQuery);
+          const matchSub = a.subject.toLowerCase().includes(asgSearchQuery);
+          if (!matchTitle && !matchSub) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="card" style="text-align: center; padding: 40px 20px; color: var(--color-ink-muted);">
+            <i data-lucide="check-circle" style="width: 32px; height: 32px; color: var(--color-sage); margin: 0 auto 10px;"></i>
+            <h4 style="margin-bottom: 4px;">No assignments match this filter</h4>
+            <p class="subtext">Try changing the filter or search query above.</p>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      container.innerHTML = filtered.map(a => `
+        <div class="asg-card ${a.completed ? 'completed' : ''}" onclick="toggleAssignment('${a.id}')">
+          <div class="asg-checkbox-box">
+            ${a.completed ? '<i data-lucide="check" style="width: 15px; height: 15px;"></i>' : ''}
+          </div>
+          <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 2px;">
+              <span class="asg-title" style="font-size: var(--text-base); font-weight: 600; color: var(--color-ink);">${a.title}</span>
+              <span class="subtext" style="font-weight: 600; white-space: nowrap;">${a.dueText}</span>
+            </div>
+            <div class="asg-meta-row">
+              <span class="badge badge-blue" style="font-size: 0.65rem;">${a.subject}</span>
+              <span class="subtext" style="font-size: 0.75rem;">${a.weight}</span>
+              <span class="subtext" style="font-size: 0.75rem;">· ${a.tag}</span>
+              ${a.completed ? '<span class="badge badge-sage" style="font-size: 0.65rem;">Completed</span>' : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* -------------------------------------------------------------------------
+       C. DIGITAL PASS 3D FLIP CARD & CANAVS QR ENGINE
+       ------------------------------------------------------------------------- */
+    let passIsFlipped = false;
+
+    function togglePassFlip() {
+      const card = document.getElementById('pass-card-element');
+      if (!card) return;
+      passIsFlipped = !passIsFlipped;
+      if (passIsFlipped) {
+        card.classList.add('flipped');
+      } else {
+        card.classList.remove('flipped');
+      }
+    }
+
+    function renderDigitalPassQR() {
+      const canvas = document.getElementById('pass-qr-canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const size = canvas.width;
+      ctx.clearRect(0, 0, size, size);
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(0, 0, size, size);
+
+      const modules = 25;
+      const cellSize = (size - 20) / modules;
+      const offset = 10;
+
+      function drawFinder(row, col) {
+        ctx.fillStyle = '#1C232B';
+        ctx.fillRect(offset + col * cellSize, offset + row * cellSize, 7 * cellSize, 7 * cellSize);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(offset + (col + 1) * cellSize, offset + (row + 1) * cellSize, 5 * cellSize, 5 * cellSize);
+        ctx.fillStyle = '#1C232B';
+        ctx.fillRect(offset + (col + 2) * cellSize, offset + (row + 2) * cellSize, 3 * cellSize, 3 * cellSize);
+      }
+
+      drawFinder(0, 0);
+      drawFinder(0, modules - 7);
+      drawFinder(modules - 7, 0);
+
+      // Timing tracks
+      for (let i = 8; i < modules - 8; i++) {
+        ctx.fillStyle = (i % 2 === 0) ? '#1C232B' : '#FFFFFF';
+        ctx.fillRect(offset + i * cellSize, offset + 6 * cellSize, cellSize, cellSize);
+        ctx.fillRect(offset + 6 * cellSize, offset + i * cellSize, cellSize, cellSize);
+      }
+
+      // Alignment square
+      const ar = 16, ac = 16;
+      ctx.fillStyle = '#1C232B';
+      ctx.fillRect(offset + ac * cellSize, offset + ar * cellSize, 5 * cellSize, 5 * cellSize);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.fillRect(offset + (ac + 1) * cellSize, offset + (ar + 1) * cellSize, 3 * cellSize, 3 * cellSize);
+      ctx.fillStyle = '#1C232B';
+      ctx.fillRect(offset + (ac + 2) * cellSize, offset + (ar + 2) * cellSize, cellSize, cellSize);
+
+      // Data pattern
+      const token = "BOS-XIB-041-9F4A-7C21-LIVE-ISHAAN-KALRA";
+      let seed = 42;
+      for (let i = 0; i < token.length; i++) {
+        seed = ((seed << 5) - seed) + token.charCodeAt(i);
+        seed |= 0;
+      }
+
+      ctx.fillStyle = '#1C232B';
+      for (let r = 0; r < modules; r++) {
+        for (let c = 0; c < modules; c++) {
+          const inTL = r < 8 && c < 8;
+          const inTR = r < 8 && c >= modules - 8;
+          const inBL = r >= modules - 8 && c < 8;
+          const inAlign = r >= 15 && r <= 21 && c >= 15 && c <= 21;
+          const inTiming = r === 6 || c === 6;
+
+          if (!inTL && !inTR && !inBL && !inAlign && !inTiming) {
+            const val = Math.sin(r * 29.3 + c * 71.7 + seed) * 10000;
+            if ((val - Math.floor(val)) > 0.51) {
+              ctx.fillRect(offset + c * cellSize, offset + r * cellSize, cellSize - 0.4, cellSize - 0.4);
+            }
+          }
+        }
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       D. PITCH PAD 6 STARTUP CARDS & INTERACTIVE VOTING
+       ------------------------------------------------------------------------- */
+    const PITCH_VENTURES = [
+      {
+        id: 'pitch-campus-cart',
+        name: 'CampusCart',
+        desc: 'Decentralized campus peer marketplace for textbooks, lab equipment, and student-made essentials.',
+        category: 'Commerce & Logistics',
+        tags: ['P2P Marketplace', 'Zero Commission', 'Campus Verified'],
+        votes: 58,
+        hasVoted: false,
+        isDirectorsPick: true
+      },
+      {
+        id: 'pitch-skill-sync',
+        name: 'SkillSync',
+        desc: 'AI-curated peer tutoring network matching senior mentors with juniors based on subject mastery gaps.',
+        category: 'EdTech & Mentorship',
+        tags: ['Micro-Mentorship', 'Class XI/XII', 'Reputation Score'],
+        votes: 47,
+        hasVoted: false,
+        isDirectorsPick: false
+      },
+      {
+        id: 'pitch-queue-less',
+        name: 'QueueLess',
+        desc: 'Smart cafeteria preorder & pickup slot allocation system eliminating lunch break congestion.',
+        category: 'Campus Utilities & IoT',
+        tags: ['NFC Pickup', 'Inventory Sync', 'Ishaan Kalra Co-Founder'],
+        votes: 42,
+        hasVoted: false,
+        isDirectorsPick: true
+      },
+      {
+        id: 'pitch-study-sphere',
+        name: 'StudySphere',
+        desc: 'Collaborative Pomodoro focus rooms with synchronized ambient soundscapes and inter-school study leagues.',
+        category: 'Productivity & Social',
+        tags: ['Focus Analytics', 'Virtual Library', 'Gamified Badges'],
+        votes: 36,
+        hasVoted: false,
+        isDirectorsPick: false
+      },
+      {
+        id: 'pitch-eco-track',
+        name: 'EcoTrack',
+        desc: 'IoT-enabled campus waste segregation and carbon audit tracker with house point rewards for green habits.',
+        category: 'CleanTech & Sustainability',
+        tags: ['Hardware IoT', 'Carbon Accounting', 'House Cup Bonus'],
+        votes: 29,
+        hasVoted: false,
+        isDirectorsPick: false
+      },
+      {
+        id: 'pitch-club-flow',
+        name: 'ClubFlow',
+        desc: 'Unified event management, attendance logging, and budget tracker for high-school extracurricular societies.',
+        category: 'SaaS & Operations',
+        tags: ['Event Ticketing', 'Society Budgets', 'Approval Workflows'],
+        votes: 25,
+        hasVoted: false,
+        isDirectorsPick: true
+      }
+    ];
+
+    function togglePitchVote(ventureId) {
+      const v = PITCH_VENTURES.find(item => item.id === ventureId);
+      if (!v) return;
+
+      if (v.hasVoted) {
+        v.votes -= 1;
+        v.hasVoted = false;
+      } else {
+        v.votes += 1;
+        v.hasVoted = true;
+      }
+
+      renderPitchPad();
+      updateTotalPitchVotes();
+    }
+
+    function toggleDirectorsPick(ventureId) {
+      const v = PITCH_VENTURES.find(item => item.id === ventureId);
+      if (!v) return;
+
+      v.isDirectorsPick = !v.isDirectorsPick;
+      renderPitchPad();
+    }
+
+    function updateTotalPitchVotes() {
+      const total = PITCH_VENTURES.reduce((acc, v) => acc + v.votes, 0);
+      const badge = document.getElementById('total-pitch-votes-badge');
+      if (badge) {
+        badge.textContent = `Total Votes: ${total}`;
+      }
+    }
+
+    function renderPitchPad() {
+      const container = document.getElementById('pitch-grid-container');
+      if (!container) return;
+
+      container.innerHTML = PITCH_VENTURES.map(v => `
+        <div class="pitch-card ${v.isDirectorsPick ? 'directors-pick-active' : ''}">
+          <div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+              <span class="badge badge-blue" style="font-size: 0.65rem;">${v.category}</span>
+              <span class="directors-badge">🌟 Director's Pick</span>
+            </div>
+
+            <h3 class="pitch-title">${v.name}</h3>
+            <p class="pitch-desc">${v.desc}</p>
+
+            <div class="pitch-tags">
+              ${v.tags.map(t => `<span class="pitch-tag">${t}</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="pitch-action-row">
+            <!-- Upvote Button with live counter -->
+            <button class="vote-btn ${v.hasVoted ? 'voted' : ''}" onclick="togglePitchVote('${v.id}')">
+              <i data-lucide="arrow-big-up" style="width: 17px; height: 17px;"></i>
+              <span>${v.votes}</span>
+            </button>
+
+            <!-- Working Director's Pick Demo Toggle -->
+            <div class="toggle-switch-wrap ${v.isDirectorsPick ? 'active' : ''}" onclick="toggleDirectorsPick('${v.id}')" title="Toggle Director's Pick badge">
+              <span class="toggle-switch-label">Director's Pick</span>
+              <div class="toggle-switch-track">
+                <div class="toggle-switch-knob"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    /* -------------------------------------------------------------------------
+       E. HOUSE PROGRESS BAR ANIMATION
+       ------------------------------------------------------------------------- */
+    function animateHouseProgressBar() {
+      const bar = document.getElementById('orion-house-progress-bar');
+      if (bar) {
+        setTimeout(() => {
+          bar.style.width = '89.9%';
+        }, 150);
+      }
+    }
+
+    /* -------------------------------------------------------------------------
+       F. STUDENT MODULES MASTER INITIALIZER
+       ------------------------------------------------------------------------- */
+    function initStudentModules() {
+      updateTimetableState();
+      renderAssignments();
+      updateAssignmentMetrics();
+      renderDigitalPassQR();
+      renderPitchPad();
+      updateTotalPitchVotes();
+      animateHouseProgressBar();
+    }
+
+    /* =========================================================================
+       9. INITIALIZATION & SESSION ON LOAD
+       ========================================================================= */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Pre-fill school email input for effortless role verification
+      if (emailInput) {
+        emailInput.value = 'student@brainz.edu';
+        updateRoleIndicatorUI('student');
+      }
+
+      // For every login in this session, treat user as Student role
+      // (Ishaan Kalra, Class XI-B, Stream Commerce) without altering role detection
+      executeLogin(DEMO_PROFILES.student);
+
+      // Initialize all student page state engines
+      initStudentModules();
+
+      // Refresh Lucide line icons
+      if (window.lucide) {
+        lucide.createIcons();
+      }
+    });
+  </script>
+</body>
+</html>
+
