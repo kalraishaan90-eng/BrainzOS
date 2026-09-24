@@ -258,6 +258,8 @@ Email: teacher@brainz.edu
       font-size: var(--text-xs);
       font-weight: 600;
       letter-spacing: 0.02em;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
     .badge-blue {
@@ -278,7 +280,20 @@ Email: teacher@brainz.edu
       border: 1px solid rgba(212, 201, 183, 0.5);
     }
 
+    .badge-amber {
+      background: var(--color-status-amber-bg);
+      color: var(--color-status-amber);
+      border: 1px solid var(--color-status-amber-border);
+    }
+
+    .badge-red {
+      background: var(--color-status-red-bg);
+      color: var(--color-status-red);
+      border: 1px solid var(--color-status-red-border);
+    }
+
     /* Interactive Status Pills for Attendance */
+    .status-pill,
     .status-pill-btn {
       display: inline-flex;
       align-items: center;
@@ -292,13 +307,17 @@ Email: teacher@brainz.edu
       cursor: pointer;
       user-select: none;
       border: 1px solid transparent;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
 
+    .status-pill:hover,
     .status-pill-btn:hover {
       transform: translateY(-1px);
       box-shadow: var(--shadow-subtle);
     }
 
+    .status-pill:active,
     .status-pill-btn:active {
       transform: translateY(0);
     }
@@ -333,6 +352,8 @@ Email: teacher@brainz.edu
       border-radius: var(--radius-full);
       font-size: var(--text-xs);
       font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
     }
     .score-band-high {
       background: rgba(158, 187, 175, 0.26);
@@ -1047,9 +1068,10 @@ Email: teacher@brainz.edu
     /* Stat Cards Row */
     .stat-grid-4 {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: 18px;
       margin-bottom: 28px;
+      align-items: stretch;
     }
 
     .stat-card {
@@ -1065,6 +1087,7 @@ Email: teacher@brainz.edu
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      height: 100%;
     }
 
     .stat-card-label {
@@ -1095,14 +1118,16 @@ Email: teacher@brainz.edu
       display: flex;
       align-items: center;
       gap: 6px;
+      flex-wrap: wrap;
     }
 
     /* Live Classes Section */
     .live-classes-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
       gap: 22px;
       margin-bottom: 28px;
+      align-items: stretch;
     }
 
     .live-class-card {
@@ -1114,6 +1139,10 @@ Email: teacher@brainz.edu
       padding: 24px;
       box-shadow: var(--shadow-raised);
       position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
     }
 
     .live-class-top {
@@ -1194,11 +1223,39 @@ Email: teacher@brainz.edu
     .attendance-bar-label {
       display: flex;
       justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       font-size: var(--text-xs);
       font-weight: 600;
-      margin-bottom: 6px;
+      margin-bottom: 8px;
       color: var(--color-ink);
     }
+
+    .bar-label-title {
+      white-space: nowrap;
+      color: var(--color-ink);
+      font-weight: 600;
+    }
+
+    .bar-counts-group {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      font-size: 11px;
+      color: var(--color-ink-muted);
+    }
+
+    .count-tag {
+      display: inline-block;
+      white-space: nowrap;
+    }
+
+    .count-present { color: var(--color-sage); font-weight: 600; }
+    .count-late { color: var(--color-status-amber); font-weight: 600; }
+    .count-absent { color: var(--color-status-red); font-weight: 600; }
+    .count-separator { color: var(--color-border); font-weight: 400; }
 
     .attendance-bar-track {
       height: 8px;
@@ -2046,12 +2103,17 @@ Email: teacher@brainz.edu
           </div>
 
           <!-- Live-Class Section Heading -->
-          <div style="display: flex; justify-content: space-between; align-items: center; margin: 32px 0 16px;">
-            <div>
-              <h2 style="font-size: 1.35rem; font-weight: 600;">Active Teaching Sessions</h2>
-              <p class="subtext">Real-time attendance rolls and ongoing period monitors</p>
+          <div class="section-heading-wrap" style="display: flex; justify-content: space-between; align-items: center; margin: 32px 0 18px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(158, 187, 175, 0.2); display: flex; align-items: center; justify-content: center; color: var(--color-sage);">
+                <i data-lucide="radio" style="width: 18px; height: 18px;"></i>
+              </div>
+              <div>
+                <h2 style="font-size: 1.25rem; font-weight: 600; margin: 0; color: var(--color-ink);">Active Teaching Sessions</h2>
+                <p class="subtext" style="margin: 2px 0 0; font-size: var(--text-xs);">Real-time attendance rolls and ongoing period monitors</p>
+              </div>
             </div>
-            <span class="badge badge-sage">
+            <span class="badge badge-sage" style="white-space: nowrap;">
               <span class="status-dot"></span>
               Live Periods Running
             </span>
@@ -2064,7 +2126,7 @@ Email: teacher@brainz.edu
             <div class="live-class-card">
               <div class="live-class-top">
                 <div>
-                  <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
                     <span class="badge badge-blue">Period 4 · In Progress</span>
                     <span class="badge badge-beige">Room B-204</span>
                   </div>
@@ -2086,8 +2148,14 @@ Email: teacher@brainz.edu
 
                 <div class="attendance-bar-wrap">
                   <div class="attendance-bar-label">
-                    <span>Live Cohort Roll</span>
-                    <span id="xib-bar-counts">34 Present · 1 Late · 1 Absent</span>
+                    <span class="bar-label-title">Live Cohort Roll</span>
+                    <span class="bar-counts-group" id="xib-bar-counts">
+                      <span class="count-tag count-present">34 Present</span>
+                      <span class="count-separator">·</span>
+                      <span class="count-tag count-late">1 Late</span>
+                      <span class="count-separator">·</span>
+                      <span class="count-tag count-absent">1 Absent</span>
+                    </span>
                   </div>
                   <div class="attendance-bar-track">
                     <div class="attendance-bar-fill" id="bar-fill-xib" style="width: 94.4%;"></div>
@@ -2097,7 +2165,7 @@ Email: teacher@brainz.edu
 
               <div class="live-class-actions">
                 <span>Next: Period 5 · Study Hall (12:10 PM)</span>
-                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="navigateTo('page-teacher-attendance')">
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;" onclick="navigateTo('page-teacher-attendance')">
                   <span>Manage Roll Call</span>
                   <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                 </button>
@@ -2108,7 +2176,7 @@ Email: teacher@brainz.edu
             <div class="live-class-card">
               <div class="live-class-top">
                 <div>
-                  <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+                  <div style="display: flex; gap: 8px; margin-bottom: 6px; flex-wrap: wrap;">
                     <span class="badge badge-sage">Period 6 · Next at 13:10</span>
                     <span class="badge badge-beige">Room A-102</span>
                   </div>
@@ -2130,8 +2198,14 @@ Email: teacher@brainz.edu
 
                 <div class="attendance-bar-wrap">
                   <div class="attendance-bar-label">
-                    <span>Pre-check Roll</span>
-                    <span>31 Present · 2 Late · 1 Absent</span>
+                    <span class="bar-label-title">Pre-check Roll</span>
+                    <span class="bar-counts-group">
+                      <span class="count-tag count-present">31 Present</span>
+                      <span class="count-separator">·</span>
+                      <span class="count-tag count-late">2 Late</span>
+                      <span class="count-separator">·</span>
+                      <span class="count-tag count-absent">1 Absent</span>
+                    </span>
                   </div>
                   <div class="attendance-bar-track">
                     <div class="attendance-bar-fill" style="width: 91.2%;"></div>
@@ -2141,7 +2215,7 @@ Email: teacher@brainz.edu
 
               <div class="live-class-actions">
                 <span>Assigned Room Proctor: Dr. Roy</span>
-                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="navigateTo('page-teacher-gradebook')">
+                <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; white-space: nowrap;" onclick="navigateTo('page-teacher-gradebook')">
                   <span>Open Class Gradebook</span>
                   <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
                 </button>
@@ -3042,7 +3116,15 @@ Email: teacher@brainz.edu
       if (ringText) ringText.textContent = `${pct}%`;
 
       const barCounts = document.getElementById('xib-bar-counts');
-      if (barCounts) barCounts.textContent = `${presentCount} Present · ${lateCount} Late · ${absentCount} Absent`;
+      if (barCounts) {
+        barCounts.innerHTML = `
+          <span class="count-tag count-present">${presentCount} Present</span>
+          <span class="count-separator">·</span>
+          <span class="count-tag count-late">${lateCount} Late</span>
+          <span class="count-separator">·</span>
+          <span class="count-tag count-absent">${absentCount} Absent</span>
+        `;
+      }
 
       const statPresent = document.getElementById('overview-stat-present');
       if (statPresent) {
