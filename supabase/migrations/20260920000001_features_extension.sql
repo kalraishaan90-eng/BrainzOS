@@ -21,6 +21,9 @@ CREATE INDEX IF NOT EXISTS idx_attendance_records_locked ON public.attendance_re
 -- Existing policy "attendance_update_teacher_or_director" allowed teachers of the class section
 -- or directors to update any row.
 -- We replace it so UPDATE is rejected if locked = true UNLESS the requesting user is a director.
+-- Boundary note: student_id is NOT NULL (FK to profiles), and is_teacher_of(NULL/unknown)
+-- evaluates FALSE, so a row whose student profile was hard-deleted is simply not
+-- teacher-editable; directors retain access. Rows cannot exist without a student.
 DROP POLICY IF EXISTS "attendance_update_teacher_or_director" ON public.attendance_records;
 
 CREATE POLICY "attendance_update_teacher_or_director"
@@ -74,6 +77,35 @@ GROUP BY p.class_section, ar.date;
 -- 3. ASSIGNMENTS — INDIVIDUAL OR GROUP
 -- =============================================================================
 
+-- Shared security-definer predicate for "who may see / manage assignees of an
+-- assignment". The permissive SELECT policies on assignments and
+-- assignment_individual_assignees below reference each other's tables
+-- (assignments -> assignees via EXISTS, and assignees -> assignments via
+-- EXISTS). With invoker-rights subqueries that is mutual recursion: PostgREST
+-- fails every query against either table with "infinite recursion detected in
+-- policy for relation ...". Evaluating the assignment's class_section /
+-- created_by inside a SECURITY DEFINER function breaks the cycle.
+CREATE OR REPLACE FUNCTION public.can_manage_assignment_assignees(target_assignment_id UUID)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+STABLE
+AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM public.assignments a
+        WHERE a.id = target_assignment_id
+          AND (
+              a.created_by = auth.uid()
+              OR public.is_director()
+              OR public.is_teacher_of(a.class_section)
+          )
+    );
+$$;
+
+REVOKE ALL ON FUNCTION public.can_manage_assignment_assignees(UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.can_manage_assignment_assignees(UUID) TO authenticated;
+
 -- Create assignee_type ENUM
 DO $$ BEGIN
     CREATE TYPE public.assignment_assignee_type AS ENUM ('class', 'individual');
@@ -109,36 +141,21 @@ CREATE POLICY "assignment_individual_assignees_select_policy"
     TO authenticated
     USING (
         student_id = auth.uid()
-        OR public.is_director()
-        OR EXISTS (
-            SELECT 1 FROM public.assignments a
-            WHERE a.id = assignment_individual_assignees.assignment_id
-              AND (a.created_by = auth.uid() OR public.is_teacher_of(a.class_section))
-        )
+        OR public.can_manage_assignment_assignees(assignment_individual_assignees.assignment_id)
     );
 
 CREATE POLICY "assignment_individual_assignees_insert_teacher_or_director"
     ON public.assignment_individual_assignees FOR INSERT
     TO authenticated
     WITH CHECK (
-        public.is_director()
-        OR EXISTS (
-            SELECT 1 FROM public.assignments a
-            WHERE a.id = assignment_individual_assignees.assignment_id
-              AND (a.created_by = auth.uid() OR public.is_teacher_of(a.class_section))
-        )
+        public.can_manage_assignment_assignees(assignment_individual_assignees.assignment_id)
     );
 
 CREATE POLICY "assignment_individual_assignees_delete_teacher_or_director"
     ON public.assignment_individual_assignees FOR DELETE
     TO authenticated
     USING (
-        public.is_director()
-        OR EXISTS (
-            SELECT 1 FROM public.assignments a
-            WHERE a.id = assignment_individual_assignees.assignment_id
-              AND (a.created_by = auth.uid() OR public.is_teacher_of(a.class_section))
-        )
+        public.can_manage_assignment_assignees(assignment_individual_assignees.assignment_id)
     );
 
 -- Update RLS for assignments table:

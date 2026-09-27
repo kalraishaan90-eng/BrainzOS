@@ -165,22 +165,50 @@ Deno.serve(async (req: Request) => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const cleanFullName = full_name.trim();
-    const classSectionsStr = Array.isArray(class_sections_taught)
+    const classSectionsStr = (Array.isArray(class_sections_taught)
       ? class_sections_taught.join(", ")
-      : (class_sections_taught ? String(class_sections_taught).trim() : "XI-B");
+      : (class_sections_taught ? String(class_sections_taught).trim() : "XI-B")).slice(0, 120);
 
     // 4. Duplicate Check: Ensure user with this email does not already exist
-    // Check both profiles table and auth.users
-    const { data: existingProfile } = await adminClient
+    // Check both profiles table and auth.users.
+    // public.profiles has no email column; the auth.users scan below is the real
+    // duplicate guard. The student_id_code lookup additionally catches legacy rows
+    // where the institutional identifier was stored as the email.
+    const { data: existingProfile, error: profileLookupError } = await adminClient
       .from("profiles")
       .select("id, full_name, role")
-      .eq("student_id_code", normalizedEmail) // in case used as identifier
+      .eq("student_id_code", normalizedEmail)
       .maybeSingle();
 
-    const { data: { users: matchingAuthUsers }, error: searchErr } = await adminClient.auth.admin.listUsers();
-    const userAlreadyExists = matchingAuthUsers?.some(
-      (u) => u.email?.toLowerCase() === normalizedEmail
-    );
+    if (profileLookupError) {
+      console.error("Profile duplicate lookup failed:", profileLookupError);
+      return new Response(
+        JSON.stringify({ error: "Could not verify the institutional registry. Please retry." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // auth.admin.listUsers() is paginated (default page size 150). Only scanning the
+    // first page let duplicate emails on later pages slip through to createUser,
+    // which then fails with a opaque 400 instead of the intended 409.
+    let userAlreadyExists = false;
+    const perPage = 200;
+    for (let page = 1; page <= 50 && !userAlreadyExists; page++) {
+      const { data: pageData, error: pageErr } = await adminClient.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      if (pageErr) {
+        console.error("Auth user lookup failed:", pageErr);
+        return new Response(
+          JSON.stringify({ error: "Could not verify existing accounts. Please retry." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      const users = pageData?.users ?? [];
+      userAlreadyExists = users.some((u) => u.email?.toLowerCase() === normalizedEmail);
+      if (users.length < perPage) break; // last page reached
+    }
 
     if (existingProfile || userAlreadyExists) {
       return new Response(
@@ -233,7 +261,15 @@ Deno.serve(async (req: Request) => {
       }, { onConflict: "id" });
 
     if (upsertProfileError) {
-      console.warn("Notice updating profile row:", upsertProfileError);
+      // The auth user was already created: roll it back so a half-provisioned
+      // account cannot linger without a usable profile (a retry would then hit 409
+      // forever). We deliberately surface the profile error instead of swallowing it.
+      console.error("Profile upsert failed, deleting orphaned auth user:", upsertProfileError);
+      await adminClient.auth.admin.deleteUser(newUserId);
+      return new Response(
+        JSON.stringify({ error: "Auth user created but profile provisioning failed; please retry." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     // 8. Return the generated username and temporary password ONCE

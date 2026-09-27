@@ -235,7 +235,7 @@ BEGIN
             WHEN NEW.class_section ~* '^(XI|XII|11|12)([- ]|$)' OR NEW.class_section ILIKE 'XI-%' OR NEW.class_section ILIKE 'XII-%' OR NEW.class_section ILIKE '11-%' OR NEW.class_section ILIKE '12-%' THEN 'high'::public.class_group
             WHEN NEW.class_section ~* '^(IX|X|9|10)([- ]|$)' OR NEW.class_section ILIKE 'IX-%' OR NEW.class_section ILIKE 'X-%' OR NEW.class_section ILIKE '9-%' OR NEW.class_section ILIKE '10-%' THEN 'secondary'::public.class_group
             WHEN NEW.class_section ~* '^(VI|VII|VIII|6|7|8)([- ]|$)' OR NEW.class_section ILIKE 'VI-%' OR NEW.class_section ILIKE 'VII-%' OR NEW.class_section ILIKE 'VIII-%' OR NEW.class_section ILIKE '6-%' OR NEW.class_section ILIKE '7-%' OR NEW.class_section ILIKE '8-%' THEN 'primary'::public.class_group
-            WHEN NEW.class_section ~* '^(I|II|III|IV|V|1|2|3|4|5)([- ]|$)' OR NEW.class_section ILIKE 'I-%' OR NEW.class_section ILIKE 'II-%' OR NEW.class_section ILIKE 'III-%' OR NEW.class_section ILIKE 'IV-%' OR NEW.class_section ILIKE 'V-%' OR NEW.class_section ILIKE '1-%' OR NEW.class_section ILIKE '2-%' OR NEW.class_section ILIKE '3-%' OR NEW.class_section ILIKE '4-%' OR NEW.class_section ILIKE '5-%' OR NEW.class_section ILIKE 'KG%' OR NEW.class_section ILIKE 'NUR%' THEN 'elementary'::public.class_group
+            WHEN NEW.class_section ~* '^(I|II|III|IV|V|1|2|3|4|5)([- ]|$)' OR NEW.class_section ILIKE 'I-%' OR NEW.class_section ILIKE 'II-%' OR NEW.class_section ILIKE 'III-%' OR NEW.class_section ILIKE 'IV-%' OR NEW.class_section ILIKE 'V-%' OR NEW.class_section ILIKE '1-%' OR NEW.class_section ILIKE '2-%' OR NEW.class_section ILIKE '3-%' OR NEW.class_section ILIKE '4-%' OR NEW.class_section ILIKE '5-%' OR NEW.class_section ILIKE 'KG%' OR NEW.class_section ILIKE 'NUR%' OR NEW.class_section ILIKE 'PREP%' THEN 'elementary'::public.class_group
             ELSE 'high'::public.class_group
         END;
     END IF;
@@ -300,6 +300,41 @@ CREATE POLICY "profiles_update_teacher_assigned_students"
         AND class_section IS NOT NULL
         AND public.is_teacher_of(class_section)
     );
+
+-- 4.1.1 Keep class_group in sync with class_section.
+-- trg_auto_assign_class_group only fires when class_group IS NULL, so a teacher
+-- moving a student between sections (e.g. XI-B -> XI-A is blocked, but
+-- X-A -> 6-A is allowed for a re-classified student) would silently leave the
+-- stale group behind and mis-bucket the student in daily_attendance_by_group.
+-- The recompute function intentionally overwrites any manual value on section
+-- change; the director-only guard below still protects manual group overrides.
+CREATE OR REPLACE FUNCTION public.recompute_class_group()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+    IF NEW.role = 'student' AND NEW.class_section IS NOT NULL THEN
+        NEW.class_group :=
+            CASE
+                WHEN NEW.class_section ~* '^(XI|XII|11|12)([- ]|$)' OR NEW.class_section ILIKE 'XI-%' OR NEW.class_section ILIKE 'XII-%' OR NEW.class_section ILIKE '11-%' OR NEW.class_section ILIKE '12-%' THEN 'high'::public.class_group
+                WHEN NEW.class_section ~* '^(IX|X|9|10)([- ]|$)' OR NEW.class_section ILIKE 'IX-%' OR NEW.class_section ILIKE 'X-%' OR NEW.class_section ILIKE '9-%' OR NEW.class_section ILIKE '10-%' THEN 'secondary'::public.class_group
+                WHEN NEW.class_section ~* '^(VI|VII|VIII|6|7|8)([- ]|$)' OR NEW.class_section ILIKE 'VI-%' OR NEW.class_section ILIKE 'VII-%' OR NEW.class_section ILIKE 'VIII-%' OR NEW.class_section ILIKE '6-%' OR NEW.class_section ILIKE '7-%' OR NEW.class_section ILIKE '8-%' THEN 'primary'::public.class_group
+                WHEN NEW.class_section ~* '^(I|II|III|IV|V|1|2|3|4|5)([- ]|$)' OR NEW.class_section ILIKE 'I-%' OR NEW.class_section ILIKE 'II-%' OR NEW.class_section ILIKE 'III-%' OR NEW.class_section ILIKE 'IV-%' OR NEW.class_section ILIKE 'V-%' OR NEW.class_section ILIKE '1-%' OR NEW.class_section ILIKE '2-%' OR NEW.class_section ILIKE '3-%' OR NEW.class_section ILIKE '4-%' OR NEW.class_section ILIKE '5-%' OR NEW.class_section ILIKE 'KG%' OR NEW.class_section ILIKE 'NUR%' OR NEW.class_section ILIKE 'PREP%' THEN 'elementary'::public.class_group
+                ELSE 'high'::public.class_group
+            END;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_recompute_class_group ON public.profiles;
+CREATE TRIGGER trg_recompute_class_group
+    BEFORE UPDATE OF class_section ON public.profiles
+    FOR EACH ROW
+    WHEN (NEW.class_section IS DISTINCT FROM OLD.class_section)
+    EXECUTE FUNCTION public.recompute_class_group();
 
 -- 4.2 Field Protection Trigger
 -- RLS policies permit the UPDATE statement at row level.

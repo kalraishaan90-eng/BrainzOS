@@ -13036,6 +13036,26 @@ let STUDENTS_ROSTER_DATA = [
 /**
  * 6.3 DOCUMENTS ENGINE: FETCH, UPLOAD & SIGNED DOWNLOAD (Prompt 1)
  */
+// Number of documents shown for a person, mirroring exactly what the documents
+// table renders: live person_documents rows when present, otherwise the demo
+// dataset (never the synthetic fallback row). Directly filtering
+// PERSON_DOCUMENTS_DATA went stale once real rows existed, and showed a wrong
+// count for people with only the generic fallback dossier.
+async function countPersonDocuments(ownerId) {
+  if (supabase) {
+    try {
+      const { count, error } = await supabase
+        .from('person_documents')
+        .select('id', { count: 'exact', head: true })
+        .eq('owner_id', ownerId);
+      if (!error && typeof count === 'number') return count;
+    } catch (err) {
+      console.warn('person_documents count error:', err);
+    }
+  }
+  return PERSON_DOCUMENTS_DATA.filter(d => d.owner_id === ownerId).length;
+}
+
 async function fetchAndRenderPersonDocuments(ownerId, tbodyId) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
@@ -13087,6 +13107,13 @@ async function fetchAndRenderPersonDocuments(ownerId, tbodyId) {
     const isImg = doc.file_name.match(/\.(png|jpg|jpeg|webp)$/i);
     const iconName = isPdf ? 'file-text' : (isImg ? 'image' : 'file');
     const dateFormatted = doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Recent';
+    // data-idx references this row's doc inside the render list; the click handler
+    // resolves id/path/name from JS state. Inlining raw values into the onclick
+    // attribute was an attribute-injection sink (a file named O'Brien.pdf or a
+    // crafted storage_path terminates the attribute and executes attacker JS —
+    // storage_path/file_name are director-controlled but still untrusted input).
+    if (!doc._renderIdx) doc._renderIdx = 'd' + Math.random().toString(36).slice(2, 10);
+    const docRef = doc._renderIdx;
 
     return `
       <tr>
@@ -13110,7 +13137,7 @@ async function fetchAndRenderPersonDocuments(ownerId, tbodyId) {
         </td>
         <td><span class="badge badge-blue" style="font-size: 10px;">${isPdf ? 'PDF Document' : (isImg ? 'Image' : 'Document')}</span></td>
         <td style="text-align: right;">
-          <button class="btn-secondary" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;" onclick="downloadPersonDocument('${doc.id}', '${doc.storage_path}', '${escapeHtml(doc.file_name)}')">
+          <button class="btn-secondary" data-doc-ref="${docRef}" style="padding: 6px 12px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
             <i data-lucide="download" style="width: 14px; height: 14px;"></i>
             <span>Download</span>
           </button>
@@ -13118,6 +13145,12 @@ async function fetchAndRenderPersonDocuments(ownerId, tbodyId) {
       </tr>
     `;
   }).join('');
+
+  tbody.querySelectorAll('button[data-doc-ref]').forEach(btn => {
+    const doc = docs.find(d => d._renderIdx === btn.getAttribute('data-doc-ref'));
+    if (!doc) return;
+    btn.addEventListener('click', () => downloadPersonDocument(doc.id, doc.storage_path, doc.file_name));
+  });
 
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 }
@@ -13568,9 +13601,9 @@ async function renderTeacherDetail(teacherId) {
 
   // Populate Tab 5: Documents (Prompt 1)
   await fetchAndRenderPersonDocuments(tId, 'td-documents-tbody');
-  const docCount = PERSON_DOCUMENTS_DATA.filter(d => d.owner_id === tId).length;
+  const docCount = await countPersonDocuments(tId);
   const docCountEl = document.getElementById('td-doc-count');
-  if (docCountEl) docCountEl.textContent = docCount || 3;
+  if (docCountEl) docCountEl.textContent = docCount;
 
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 }
@@ -13844,8 +13877,8 @@ async function renderStudentDetailPage(studentId) {
 
   // Populate Documents Section
   await fetchAndRenderPersonDocuments(sId, 'sd-documents-tbody');
-  const count = PERSON_DOCUMENTS_DATA.filter(d => d.owner_id === sId).length;
-  if (docsEl) docsEl.textContent = count || 3;
+  const count = await countPersonDocuments(sId);
+  if (docsEl) docsEl.textContent = count;
 
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 }
@@ -13992,6 +14025,13 @@ function updateStudentInMemory(studentId, fullName, avatarUrl) {
   // Update GRADEBOOK_DATA
   const grItem = GRADEBOOK_DATA.find(g => g.id === studentId);
   if (grItem) grItem.name = fullName;
+
+  // Keep the student roster dataset in sync too (used as the edit-modal fallback source)
+  const rosterItem = STUDENTS_ROSTER_DATA.find(s => s.id === studentId);
+  if (rosterItem) {
+    rosterItem.name = fullName;
+    rosterItem.avatar_url = avatarUrl;
+  }
 
   // Update DEMO_PROFILES.student if matching
   if (DEMO_PROFILES.student && DEMO_PROFILES.student.id === studentId) {
