@@ -2503,7 +2503,7 @@ NOTE FOR EXTENDING AGENTS:
             <div class="student-title-row">
               <div>
                 <h1>Welcome, Ishaan Kalra</h1>
-                <p>Class XI-B · Stream Commerce · Orion House · ID: BOS-XIB-041</p>
+                <p>Class XI-B · Stream Commerce · Nalanda House · ID: BOS-XIB-041</p>
               </div>
               <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button class="btn-secondary" style="width: auto; padding: 10px 18px;" onclick="navigateTo('page-student-pass')">
@@ -2555,20 +2555,20 @@ NOTE FOR EXTENDING AGENTS:
               <div class="stat-card-value">1,240</div>
               <div class="stat-card-footer">
                 <span class="badge badge-blue" style="font-size: 0.688rem; padding: 2px 7px;">Rank #2</span>
-                <span>Orion House (140 pts to #1)</span>
+                <span>Nalanda House (140 pts to #1)</span>
               </div>
             </div>
 
-            <!-- Card 4: Pitch Pad Rank -->
-            <div class="stat-card" style="cursor: pointer;" onclick="navigateTo('page-student-pitch')">
+            <!-- Card 4: Active Clubs -->
+            <div class="stat-card" style="cursor: pointer;" onclick="navigateTo('page-student-clubs')">
               <div class="stat-card-label">
-                <span>Pitch Pad Rank</span>
-                <i data-lucide="rocket"></i>
+                <span>Active Clubs</span>
+                <i data-lucide="users"></i>
               </div>
-              <div class="stat-card-value">#04</div>
+              <div class="stat-card-value">03</div>
               <div class="stat-card-footer">
-                <span class="badge badge-sage" style="font-size: 0.688rem; padding: 2px 7px;">Top 5 Finalist</span>
-                <span>QueueLess · 42 votes</span>
+                <span class="badge badge-sage" style="font-size: 0.688rem; padding: 2px 7px;">3 Societies</span>
+                <span>Science · Commerce · Debate</span>
               </div>
             </div>
           </div>
@@ -2665,7 +2665,7 @@ NOTE FOR EXTENDING AGENTS:
                     </div>
                     <div class="feed-title">House Cup Standings Revised</div>
                     <div class="feed-desc">
-                      Orion House earns +120 points following the Inter-House Business Quiz win, cutting Phoenix's lead to 140 points.
+                      Nalanda House earns +120 points following the Inter-House Business Quiz win, cutting Takshashila's lead to 140 points.
                     </div>
                   </div>
 
@@ -2896,7 +2896,7 @@ NOTE FOR EXTENDING AGENTS:
                   <div class="pass-meta-grid">
                     <div class="pass-meta-item">
                       <div class="pass-meta-label">House</div>
-                      <div class="pass-meta-val">ORION</div>
+                      <div class="pass-meta-val" id="pass-house-val">NALANDA</div>
                     </div>
                     <div class="pass-meta-item">
                       <div class="pass-meta-label">Status</div>
@@ -2971,111 +2971,110 @@ NOTE FOR EXTENDING AGENTS:
         </section>
 
         <!-- ===================================================================
-             5. STUDENT PITCH PAD (STARTUP INCUBATOR & UPVOTE SHOWCASE)
-             =================================================================== -->
-        <section id="page-student-pitch" class="os-page">
-          <div class="student-page-header">
-            <div class="student-eyebrow">
-              <i data-lucide="sparkles"></i>
-              <span>Student Entrepreneurship Hub</span>
-            </div>
-            <div class="student-title-row">
-              <div>
-                <h1>Pitch Pad Ventures</h1>
-                <p>Campus startups and prototype incubators. Upvote ventures and toggle Director's Picks live.</p>
-              </div>
-              <div style="display: flex; align-items: center; gap: 12px;">
-                <span class="badge badge-beige" id="total-pitch-votes-badge">Total Votes: 237</span>
-                <span class="badge badge-blue">Demo Day: 14 Oct 2026</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Pitch Pad 6 Venture Cards Grid -->
-          <div class="pitch-grid" id="pitch-grid-container">
-            <!-- Dynamically populated from PITCH_VENTURES with real JS state -->
-          </div>
-        </section>
-
-        <!-- ===================================================================
              6. STUDENT CLUBS & HOUSES (HOUSE CHAMPIONSHIP & CLUBS)
              =================================================================== -->
         <section id="page-student-clubs" class="os-page">
           <div class="student-page-header">
             <div class="student-eyebrow">
               <i data-lucide="shield"></i>
-              <span>House Cup & Co-Curricular Societies</span>
+              <span>House Cup &amp; Co-Curricular Societies</span>
             </div>
             <div class="student-title-row">
               <div>
-                <h1>Clubs & Houses</h1>
-                <p>Track Orion House's championship standing and active student society participation.</p>
+                <h1>Clubs &amp; Houses</h1>
+                <p>Track Nalanda House's championship standing and active student society participation.</p>
               </div>
             </div>
           </div>
 
-          <!-- Orion House Feature Card -->
-          <div class="house-hero-card">
+          <!-- Nalanda House Feature Card (Blue House) -->
+          <div class="house-hero-card" style="border-left: 5px solid #2563eb; background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, var(--glass-bg) 60%);">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 14px;">
               <div style="display: flex; align-items: center; gap: 16px;">
-                <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(106, 142, 174, 0.16); border: 1.5px solid var(--color-blue); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 600; color: var(--color-blue);">
-                  Ω
+                <div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(37, 99, 235, 0.16); border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 700; color: #2563eb; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);">
+                  N
                 </div>
                 <div>
-                  <h2 style="font-size: 1.85rem; margin-bottom: 2px;">ORION — 1,240 points — #2 of 4 houses</h2>
-                  <p class="subtext">Motto: <em>Ad Astra Per Aspera</em> · Shield: Golden Hunter · House Master: Mr. S. Bannerjee</p>
+                  <h2 style="font-size: 1.85rem; margin-bottom: 2px;">NALANDA — 1,240 points — #2 of 4 houses</h2>
+                  <p class="subtext">Color: <strong style="color: #2563eb;">Blue</strong> · Motto: <em>Jnanam Paramam Dhyeyam</em> · House Master: Mr. S. Bannerjee</p>
                 </div>
               </div>
-              <span class="badge badge-sage" style="font-size: 0.8rem; padding: 6px 14px;">
-                <span class="status-dot"></span>
-                <span>Active Contender</span>
+              <span class="badge" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(37, 99, 235, 0.12); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.35);">
+                <span class="status-dot" style="background: #2563eb;"></span>
+                <span>Blue House · Active Contender</span>
               </span>
             </div>
 
-            <!-- Animated Progress Bar relative to Top House's Points (Phoenix @ 1,380) -->
+            <!-- Animated Progress Bar relative to Top House's Points (Takshashila @ 1,380) -->
             <div style="margin: 22px 0 10px;">
               <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; margin-bottom: 8px;">
-                <span style="color: var(--color-ink-muted);">Proximity to Leader (Phoenix: 1,380 pts)</span>
-                <span style="color: var(--color-blue);" id="orion-progress-pct">89.9% (1,240 / 1,380)</span>
+                <span style="color: var(--color-ink-muted);">Proximity to Leader (Takshashila: 1,380 pts)</span>
+                <span style="color: #2563eb; font-weight: 700;" id="nalanda-progress-pct">89.9% (1,240 / 1,380)</span>
               </div>
-              <div class="progress-track" style="height: 12px;">
-                <div class="progress-fill animated-pulse" id="orion-house-progress-bar" style="width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+              <div class="progress-track" style="height: 12px; border-radius: 6px;">
+                <div class="progress-fill animated-pulse" id="nalanda-house-progress-bar" style="width: 89.9%; background: #2563eb; border-radius: 6px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
               </div>
             </div>
 
             <!-- Standings of All 4 Houses -->
             <div class="house-leaderboard-grid">
-              <div class="house-mini-card">
-                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #8A723D;">Rank #1 · Leader</div>
-                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Phoenix</h4>
-                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,380 pts</div>
+              <!-- House 1: Takshashila (Green) -->
+              <div class="house-mini-card" style="border-top: 4px solid #16a34a; background: rgba(22, 163, 74, 0.04);">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #16a34a;">Rank #1 · Leader (Green)</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #16a34a;">Takshashila</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #16a34a;">1,380 pts</div>
               </div>
 
-              <div class="house-mini-card is-current">
-                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: var(--color-blue);">Rank #2 · Ishaan's House</div>
-                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Orion</h4>
-                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-blue);">1,240 pts</div>
+              <!-- House 2: Nalanda (Blue) - Ishaan's House -->
+              <div class="house-mini-card is-current" style="border-top: 4px solid #2563eb; border-color: #2563eb; background: rgba(37, 99, 235, 0.1);">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #2563eb;">Rank #2 · Ishaan's House (Blue)</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #2563eb;">Nalanda</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #2563eb;">1,240 pts</div>
               </div>
 
-              <div class="house-mini-card">
-                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #3</div>
-                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Pegasus</h4>
-                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,110 pts</div>
+              <!-- House 3: Vikramshila (Yellow) -->
+              <div class="house-mini-card" style="border-top: 4px solid #d97706; background: rgba(217, 119, 6, 0.04);">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #d97706;">Rank #3 (Yellow)</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #d97706;">Vikramshila</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #d97706;">1,110 pts</div>
               </div>
 
-              <div class="house-mini-card">
-                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #4</div>
-                <h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Centaurus</h4>
-                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">970 pts</div>
+              <!-- House 4: Vallabhi (Red) -->
+              <div class="house-mini-card" style="border-top: 4px solid #dc2626; background: rgba(220, 38, 38, 0.04);">
+                <div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #dc2626;">Rank #4 (Red)</div>
+                <h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #dc2626;">Vallabhi</h4>
+                <div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #dc2626;">970 pts</div>
               </div>
             </div>
           </div>
 
-          <!-- Co-Curricular Clubs Grid (Clean Glass Cards) -->
-          <h3 style="font-size: var(--text-2xl); margin-bottom: 18px;">Registered Societies & Student Clubs</h3>
+          <!-- Co-Curricular Clubs Grid: Science Club, Commerce Club, Debate Club -->
+          <h3 style="font-size: var(--text-2xl); margin-bottom: 18px;">Registered Societies &amp; Student Clubs</h3>
           <div class="clubs-grid">
             
-            <!-- Club 1: Commerce Club (Ishaan's Core Society) -->
+            <!-- Club 1: Science Club -->
+            <div class="club-card">
+              <div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                  <span class="badge badge-sage">Active Member · STEM Lead</span>
+                  <span class="subtext" style="font-size: 0.75rem;">52 Members</span>
+                </div>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Science Club</h4>
+                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+                  Scientific research, laboratory investigations, physics &amp; chemistry simulations, robotics innovation, and CBSE Science Olympiad training.
+                </p>
+                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+                  <span><strong>Weekly Meet:</strong> Wednesdays · 3:30 PM · Physics &amp; Chemistry Labs</span>
+                  <span><strong>Upcoming:</strong> CBSE National Science Fair &amp; Innovation Expo</span>
+                </div>
+              </div>
+              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span class="subtext" style="font-size: 0.75rem;">Advisor: Dr. V. Raman</span>
+                <span class="badge badge-blue" style="cursor: pointer;">Lab Schedule</span>
+              </div>
+            </div>
+
+            <!-- Club 2: Commerce Club -->
             <div class="club-card">
               <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
@@ -3087,7 +3086,7 @@ NOTE FOR EXTENDING AGENTS:
                   Financial literacy, equity valuation, mock trading competitions, and macroeconomic policy analysis.
                 </p>
                 <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-                  <span><strong>Weekly Meet:</strong> Tuesdays & Thursdays · 3:30 PM</span>
+                  <span><strong>Weekly Meet:</strong> Tuesdays &amp; Thursdays · 3:30 PM</span>
                   <span><strong>Upcoming:</strong> Mock-Trading Challenge (Today 2:00 PM)</span>
                 </div>
               </div>
@@ -3097,36 +3096,14 @@ NOTE FOR EXTENDING AGENTS:
               </div>
             </div>
 
-            <!-- Club 2: Tech Society -->
-            <div class="club-card">
-              <div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                  <span class="badge badge-beige">Collaborator</span>
-                  <span class="subtext" style="font-size: 0.75rem;">64 Members</span>
-                </div>
-                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Tech Society</h4>
-                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Full-stack software engineering, algorithmic competitions, machine learning workshops, and campus hardware projects.
-                </p>
-                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-                  <span><strong>Weekly Meet:</strong> Wednesdays · 4:00 PM · Computer Lab 3</span>
-                  <span><strong>Upcoming:</strong> HackBrainz 2026 Inter-School Hackathon</span>
-                </div>
-              </div>
-              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <span class="subtext" style="font-size: 0.75rem;">Lead: Advait Saxena</span>
-                <span class="badge badge-blue" style="cursor: pointer;">View Roster</span>
-              </div>
-            </div>
-
-            <!-- Club 3: Debate Society -->
+            <!-- Club 3: Debate Club -->
             <div class="club-card">
               <div>
                 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
                   <span class="badge badge-blue">House Delegate</span>
                   <span class="subtext" style="font-size: 0.75rem;">35 Members</span>
                 </div>
-                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Debate Society</h4>
+                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Debate Club</h4>
                 <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
                   Parliamentary debating, Model United Nations diplomacy training, public rhetoric, and policy mock hearings.
                 </p>
@@ -3138,50 +3115,6 @@ NOTE FOR EXTENDING AGENTS:
               <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
                 <span class="subtext" style="font-size: 0.75rem;">Lead: Maya Krishnan</span>
                 <span class="badge badge-beige" style="cursor: pointer;">Debate Schedule</span>
-              </div>
-            </div>
-
-            <!-- Club 4: Student Council -->
-            <div class="club-card">
-              <div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                  <span class="badge badge-sage">Class XI Representative</span>
-                  <span class="subtext" style="font-size: 0.75rem;">22 Representatives</span>
-                </div>
-                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Student Council</h4>
-                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Student body representation, institutional grievance consultation, house cup stewarding, and campus green audits.
-                </p>
-                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-                  <span><strong>Weekly Meet:</strong> Fridays · 2:30 PM · Council Chambers</span>
-                  <span><strong>Upcoming:</strong> Academic Directorate Joint Hearing</span>
-                </div>
-              </div>
-              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <span class="subtext" style="font-size: 0.75rem;">President: Raghav M.</span>
-                <span class="badge badge-blue" style="cursor: pointer;">Minutes of Meeting</span>
-              </div>
-            </div>
-
-            <!-- Club 5: Entrepreneurship Club -->
-            <div class="club-card">
-              <div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-                  <span class="badge badge-beige">Venture Pitcher</span>
-                  <span class="subtext" style="font-size: 0.75rem;">41 Members</span>
-                </div>
-                <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Entrepreneurship Club</h4>
-                <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Business Model Canvas workshops, seed grant competitions, prototype reviews, and alumni startup founder mentorship.
-                </p>
-                <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-                  <span><strong>Weekly Meet:</strong> Saturdays · 10:00 AM · Innovation Lab</span>
-                  <span><strong>Upcoming:</strong> Pitch Pad Demo Day Presentations</span>
-                </div>
-              </div>
-              <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-                <span class="subtext" style="font-size: 0.75rem;">Lead: Sara Chawla</span>
-                <span class="badge badge-sage" style="cursor: pointer;" onclick="navigateTo('page-student-pitch')">Jump to Pitch Pad</span>
               </div>
             </div>
 
@@ -3289,7 +3222,6 @@ NOTE FOR EXTENDING AGENTS:
         { id: 'student-timetable', label: 'Timetable', icon: 'calendar', pageId: 'page-student-timetable' },
         { id: 'student-assignments', label: 'Assignments', icon: 'check-square', pageId: 'page-student-assignments' },
         { id: 'student-pass', label: 'Digital Pass', icon: 'credit-card', pageId: 'page-student-pass' },
-        { id: 'student-pitch', label: 'Pitch Pad', icon: 'rocket', pageId: 'page-student-pitch' },
         { id: 'student-clubs', label: 'Clubs & Houses', icon: 'shield', pageId: 'page-student-clubs' }
         /* <!-- STUDENT_NAV_END --> */
       ],
@@ -3330,7 +3262,7 @@ NOTE FOR EXTENDING AGENTS:
         grade: 'Class XI-B · Stream Commerce',
         classInfo: 'Class XI-B',
         stream: 'Commerce',
-        house: 'Orion',
+        house: 'Nalanda',
         studentId: 'BOS-XIB-041'
       },
       teacher: {
@@ -3625,23 +3557,6 @@ NOTE FOR EXTENDING AGENTS:
           navContainer.appendChild(btn);
         });
       }
-
-      // Utility / Shell Overview link
-      const systemCategory = document.createElement('div');
-      systemCategory.className = 'nav-category';
-      systemCategory.style.marginTop = '16px';
-      systemCategory.textContent = 'System';
-      navContainer.appendChild(systemCategory);
-
-      const overviewBtn = document.createElement('button');
-      overviewBtn.className = 'nav-btn';
-      overviewBtn.setAttribute('data-page-id', 'os-shell-welcome');
-      overviewBtn.onclick = () => navigateTo('os-shell-welcome');
-      overviewBtn.innerHTML = `
-        <i data-lucide="info"></i>
-        <span>System Status</span>
-      `;
-      navContainer.appendChild(overviewBtn);
 
       if (window.lucide) {
         lucide.createIcons();
@@ -4409,7 +4324,7 @@ NOTE FOR EXTENDING AGENTS:
        E. HOUSE PROGRESS BAR ANIMATION
        ------------------------------------------------------------------------- */
     function animateHouseProgressBar() {
-      const bar = document.getElementById('orion-house-progress-bar');
+      const bar = document.getElementById('nalanda-house-progress-bar') || document.getElementById('orion-house-progress-bar');
       if (bar) {
         setTimeout(() => {
           bar.style.width = '89.9%';

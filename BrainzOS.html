@@ -4645,7 +4645,7 @@
         </section>
 
         <!-- Foundation Welcome & Fallback State -->
-        <section class="os-page active" id="os-shell-welcome" role="region" aria-label="Welcome Overview">
+        <section class="os-page" id="os-shell-welcome" role="region" aria-label="Welcome Overview">
           <div class="placeholder-container">
             <div class="placeholder-badge">
               <span class="badge badge-blue">Foundation Workspace Initialized</span>
@@ -4667,7 +4667,7 @@
           </div>
         </section>
 
-<section class="os-page" id="page-student-dashboard">
+<section class="os-page active" id="page-student-dashboard">
 <!-- Page Header -->
 <div class="student-page-header">
 <div class="student-eyebrow">
@@ -4677,7 +4677,7 @@
 <div class="student-title-row">
 <div>
 <h1 id="dash-welcome-name">Welcome, Ishaan Kalra</h1>
-<p id="dash-welcome-meta">Class XI-B · Stream Commerce · Orion House · ID: BOS-XIB-041</p>
+<p id="dash-welcome-meta">Class XI-B · Stream Commerce · Nalanda House · ID: BOS-XIB-041</p>
 </div>
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
 <button class="btn-secondary" onclick="navigateTo('page-student-pass')" style="width: auto; padding: 10px 18px;">
@@ -4726,19 +4726,19 @@
 <div class="stat-card-value" id="dash-house-points">1,240</div>
 <div class="stat-card-footer">
 <span class="badge badge-blue" id="dash-house-rank" style="font-size: 0.688rem; padding: 2px 7px;">Rank #2</span>
-<span id="dash-house-name">Orion House (140 pts to #1)</span>
+<span id="dash-house-name">Nalanda House (140 pts to #1)</span>
 </div>
 </div>
-<!-- Card 4: Pitch Pad Rank -->
-<div class="stat-card" onclick="navigateTo('page-student-pitch')" style="cursor: pointer;">
+<!-- Card 4: Active Clubs -->
+<div class="stat-card" onclick="navigateTo('page-student-clubs')" style="cursor: pointer;">
 <div class="stat-card-label">
-<span>Pitch Pad Rank</span>
-<i data-lucide="rocket" aria-hidden="true"></i>
+<span>Active Clubs</span>
+<i data-lucide="users" aria-hidden="true"></i>
 </div>
-<div class="stat-card-value" id="dash-pitch-rank">#04</div>
+<div class="stat-card-value" id="dash-clubs-count">03</div>
 <div class="stat-card-footer">
-<span class="badge badge-sage" id="dash-pitch-badge" style="font-size: 0.688rem; padding: 2px 7px;">Top 5 Finalist</span>
-<span id="dash-pitch-sub">QueueLess · 42 votes</span>
+<span class="badge badge-sage" id="dash-clubs-badge" style="font-size: 0.688rem; padding: 2px 7px;">3 Societies</span>
+<span id="dash-clubs-sub">Science · Commerce · Debate</span>
 </div>
 </div>
 </div>
@@ -4824,7 +4824,7 @@
 </div>
 <div class="feed-title">House Cup Standings Revised</div>
 <div class="feed-desc">
-                      Orion House earns +120 points following the Inter-House Business Quiz win, cutting Phoenix's lead to 140 points.
+                      Nalanda House earns +120 points following the Inter-House Business Quiz win, cutting Takshashila's lead to 140 points.
                     </div>
 </div>
 <!-- Feed Item 3: BrainzOS Pass -->
@@ -5053,7 +5053,7 @@
 <div class="pass-meta-grid">
 <div class="pass-meta-item">
 <div class="pass-meta-label">House</div>
-<div class="pass-meta-val">ORION</div>
+<div class="pass-meta-val" id="pass-house-val">NALANDA</div>
 </div>
 <div class="pass-meta-item">
 <div class="pass-meta-label">Status</div>
@@ -5120,29 +5120,6 @@
 </div>
 </section>
 
-<section class="os-page" id="page-student-pitch">
-<div class="student-page-header">
-<div class="student-eyebrow">
-<i data-lucide="sparkles" aria-hidden="true"></i>
-<span>Student Entrepreneurship Hub</span>
-</div>
-<div class="student-title-row">
-<div>
-<h1>Pitch Pad Ventures</h1>
-<p>Campus startups and prototype incubators. Upvote ventures and toggle Director's Picks live.</p>
-</div>
-<div style="display: flex; align-items: center; gap: 12px;">
-<span class="badge badge-beige" id="total-pitch-votes-badge">Total Votes: 237</span>
-<span class="badge badge-blue">Demo Day: 14 Oct 2026</span>
-</div>
-</div>
-</div>
-<!-- Pitch Pad 6 Venture Cards Grid -->
-<div class="pitch-grid" id="pitch-grid-container">
-<!-- Dynamically populated from PITCH_VENTURES with real JS state -->
-</div>
-</section>
-
 <section class="os-page" id="page-student-clubs">
 <div class="student-page-header">
 <div class="student-eyebrow">
@@ -5152,65 +5129,90 @@
 <div class="student-title-row">
 <div>
 <h1>Clubs &amp; Houses</h1>
-<p>Track Orion House's championship standing and active student society participation.</p>
+<p>Track Nalanda House's championship standing and active student society participation.</p>
 </div>
 </div>
 </div>
-<!-- Orion House Feature Card -->
-<div class="house-hero-card">
+<!-- Nalanda House Feature Card (Blue House) -->
+<div class="house-hero-card" style="border-left: 5px solid #2563eb; background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, var(--glass-bg) 60%);">
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 14px;">
 <div style="display: flex; align-items: center; gap: 16px;">
-<div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(106, 142, 174, 0.16); border: 1.5px solid var(--color-blue); display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 600; color: var(--color-blue);">
-                  Ω
-                </div>
+<div style="width: 52px; height: 52px; border-radius: 14px; background: rgba(37, 99, 235, 0.16); border: 2px solid #2563eb; display: flex; align-items: center; justify-content: center; font-family: var(--font-heading); font-size: 1.6rem; font-weight: 700; color: #2563eb; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.2);">
+N
+</div>
 <div>
-<h2 style="font-size: 1.85rem; margin-bottom: 2px;">ORION — 1,240 points — #2 of 4 houses</h2>
-<p class="subtext">Motto: <em>Ad Astra Per Aspera</em> · Shield: Golden Hunter · House Master: Mr. S. Bannerjee</p>
+<h2 style="font-size: 1.85rem; margin-bottom: 2px;">NALANDA — 1,240 points — #2 of 4 houses</h2>
+<p class="subtext">Color: <strong style="color: #2563eb;">Blue</strong> · Motto: <em>Jnanam Paramam Dhyeyam</em> · House Master: Mr. S. Bannerjee</p>
 </div>
 </div>
-<span class="badge badge-sage" style="font-size: 0.8rem; padding: 6px 14px;">
-<span class="status-dot"></span>
-<span>Active Contender</span>
+<span class="badge" style="font-size: 0.8rem; padding: 6px 14px; background: rgba(37, 99, 235, 0.12); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.35);">
+<span class="status-dot" style="background: #2563eb;"></span>
+<span>Blue House · Active Contender</span>
 </span>
 </div>
-<!-- Animated Progress Bar relative to Top House's Points (Phoenix @ 1,380) -->
+<!-- Animated Progress Bar relative to Top House's Points (Takshashila @ 1,380) -->
 <div style="margin: 22px 0 10px;">
 <div style="display: flex; justify-content: space-between; font-size: var(--text-sm); font-weight: 600; margin-bottom: 8px;">
-<span style="color: var(--color-ink-muted);">Proximity to Leader (Phoenix: 1,380 pts)</span>
-<span id="orion-progress-pct" style="color: var(--color-blue);">89.9% (1,240 / 1,380)</span>
+<span style="color: var(--color-ink-muted);">Proximity to Leader (Takshashila: 1,380 pts)</span>
+<span id="nalanda-progress-pct" style="color: #2563eb; font-weight: 700;">89.9% (1,240 / 1,380)</span>
 </div>
-<div class="progress-track" style="height: 12px;">
-<div class="progress-fill animated-pulse" id="orion-house-progress-bar" style="width: 0%; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+<div class="progress-track" style="height: 12px; border-radius: 6px;">
+<div class="progress-fill animated-pulse" id="nalanda-house-progress-bar" style="width: 89.9%; background: #2563eb; border-radius: 6px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
 </div>
 </div>
 <!-- Standings of All 4 Houses -->
 <div class="house-leaderboard-grid">
-<div class="house-mini-card">
-<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #8A723D;">Rank #1 · Leader</div>
-<h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Phoenix</h4>
-<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,380 pts</div>
+<!-- House 1: Takshashila (Green) -->
+<div class="house-mini-card" style="border-top: 4px solid #16a34a; background: rgba(22, 163, 74, 0.04);">
+<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #16a34a;">Rank #1 · Leader (Green)</div>
+<h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #16a34a;">Takshashila</h4>
+<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #16a34a;">1,380 pts</div>
 </div>
-<div class="house-mini-card is-current">
-<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: var(--color-blue);">Rank #2 · Ishaan's House</div>
-<h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Orion</h4>
-<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-blue);">1,240 pts</div>
+<!-- House 2: Nalanda (Blue) - Ishaan's House -->
+<div class="house-mini-card is-current" style="border-top: 4px solid #2563eb; border-color: #2563eb; background: rgba(37, 99, 235, 0.1);">
+<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #2563eb;">Rank #2 · Ishaan's House (Blue)</div>
+<h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #2563eb;">Nalanda</h4>
+<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #2563eb;">1,240 pts</div>
 </div>
-<div class="house-mini-card">
-<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #3</div>
-<h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Pegasus</h4>
-<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">1,110 pts</div>
+<!-- House 3: Vikramshila (Yellow) -->
+<div class="house-mini-card" style="border-top: 4px solid #d97706; background: rgba(217, 119, 6, 0.04);">
+<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #d97706;">Rank #3 (Yellow)</div>
+<h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #d97706;">Vikramshila</h4>
+<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #d97706;">1,110 pts</div>
 </div>
-<div class="house-mini-card">
-<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem;">Rank #4</div>
-<h4 style="font-size: 1.25rem; margin: 4px 0 2px;">Centaurus</h4>
-<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: var(--color-ink);">970 pts</div>
+<!-- House 4: Vallabhi (Red) -->
+<div class="house-mini-card" style="border-top: 4px solid #dc2626; background: rgba(220, 38, 38, 0.04);">
+<div class="subtext" style="font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: #dc2626;">Rank #4 (Red)</div>
+<h4 style="font-size: 1.25rem; margin: 4px 0 2px; color: #dc2626;">Vallabhi</h4>
+<div style="font-family: monospace; font-size: 1.15rem; font-weight: 700; color: #dc2626;">970 pts</div>
 </div>
 </div>
 </div>
-<!-- Co-Curricular Clubs Grid (Clean Glass Cards) -->
+<!-- Co-Curricular Clubs Grid: Science Club, Commerce Club, Debate Club -->
 <h3 style="font-size: var(--text-2xl); margin-bottom: 18px;">Registered Societies &amp; Student Clubs</h3>
 <div class="clubs-grid">
-<!-- Club 1: Commerce Club (Ishaan's Core Society) -->
+<!-- Club 1: Science Club -->
+<div class="club-card">
+<div>
+<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+<span class="badge badge-sage">Active Member · STEM Lead</span>
+<span class="subtext" style="font-size: 0.75rem;">52 Members</span>
+</div>
+<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Science Club</h4>
+<p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
+Scientific research, laboratory investigations, physics &amp; chemistry simulations, robotics innovation, and CBSE Science Olympiad training.
+</p>
+<div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
+<span><strong>Weekly Meet:</strong> Wednesdays · 3:30 PM · Physics &amp; Chemistry Labs</span>
+<span><strong>Upcoming:</strong> CBSE National Science Fair &amp; Innovation Expo</span>
+</div>
+</div>
+<div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+<span class="subtext" style="font-size: 0.75rem;">Advisor: Dr. V. Raman</span>
+<span class="badge badge-blue" style="cursor: pointer;">Lab Schedule</span>
+</div>
+</div>
+<!-- Club 2: Commerce Club -->
 <div class="club-card">
 <div>
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
@@ -5219,8 +5221,8 @@
 </div>
 <h4 style="font-size: 1.4rem; margin-bottom: 6px;">Commerce Club</h4>
 <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Financial literacy, equity valuation, mock trading competitions, and macroeconomic policy analysis.
-                </p>
+Financial literacy, equity valuation, mock trading competitions, and macroeconomic policy analysis.
+</p>
 <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
 <span><strong>Weekly Meet:</strong> Tuesdays &amp; Thursdays · 3:30 PM</span>
 <span><strong>Upcoming:</strong> Mock-Trading Challenge (Today 2:00 PM)</span>
@@ -5231,38 +5233,17 @@
 <span class="badge badge-blue" style="cursor: pointer;">Portal Open</span>
 </div>
 </div>
-<!-- Club 2: Tech Society -->
-<div class="club-card">
-<div>
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-<span class="badge badge-beige">Collaborator</span>
-<span class="subtext" style="font-size: 0.75rem;">64 Members</span>
-</div>
-<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Tech Society</h4>
-<p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Full-stack software engineering, algorithmic competitions, machine learning workshops, and campus hardware projects.
-                </p>
-<div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-<span><strong>Weekly Meet:</strong> Wednesdays · 4:00 PM · Computer Lab 3</span>
-<span><strong>Upcoming:</strong> HackBrainz 2026 Inter-School Hackathon</span>
-</div>
-</div>
-<div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-<span class="subtext" style="font-size: 0.75rem;">Lead: Advait Saxena</span>
-<span class="badge badge-blue" style="cursor: pointer;">View Roster</span>
-</div>
-</div>
-<!-- Club 3: Debate Society -->
+<!-- Club 3: Debate Club -->
 <div class="club-card">
 <div>
 <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
 <span class="badge badge-blue">House Delegate</span>
 <span class="subtext" style="font-size: 0.75rem;">35 Members</span>
 </div>
-<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Debate Society</h4>
+<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Debate Club</h4>
 <p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Parliamentary debating, Model United Nations diplomacy training, public rhetoric, and policy mock hearings.
-                </p>
+Parliamentary debating, Model United Nations diplomacy training, public rhetoric, and policy mock hearings.
+</p>
 <div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
 <span><strong>Weekly Meet:</strong> Mondays · 3:45 PM · Audio-Visual Hall</span>
 <span><strong>Upcoming:</strong> National Schools MUN Delegation Prep</span>
@@ -5271,48 +5252,6 @@
 <div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
 <span class="subtext" style="font-size: 0.75rem;">Lead: Maya Krishnan</span>
 <span class="badge badge-beige" style="cursor: pointer;">Debate Schedule</span>
-</div>
-</div>
-<!-- Club 4: Student Council -->
-<div class="club-card">
-<div>
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-<span class="badge badge-sage">Class XI Representative</span>
-<span class="subtext" style="font-size: 0.75rem;">22 Representatives</span>
-</div>
-<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Student Council</h4>
-<p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Student body representation, institutional grievance consultation, house cup stewarding, and campus green audits.
-                </p>
-<div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-<span><strong>Weekly Meet:</strong> Fridays · 2:30 PM · Council Chambers</span>
-<span><strong>Upcoming:</strong> Academic Directorate Joint Hearing</span>
-</div>
-</div>
-<div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-<span class="subtext" style="font-size: 0.75rem;">President: Raghav M.</span>
-<span class="badge badge-blue" style="cursor: pointer;">Minutes of Meeting</span>
-</div>
-</div>
-<!-- Club 5: Entrepreneurship Club -->
-<div class="club-card">
-<div>
-<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
-<span class="badge badge-beige">Venture Pitcher</span>
-<span class="subtext" style="font-size: 0.75rem;">41 Members</span>
-</div>
-<h4 style="font-size: 1.4rem; margin-bottom: 6px;">Entrepreneurship Club</h4>
-<p class="subtext" style="line-height: 1.55; margin-bottom: 16px;">
-                  Business Model Canvas workshops, seed grant competitions, prototype reviews, and alumni startup founder mentorship.
-                </p>
-<div style="font-size: var(--text-xs); color: var(--color-ink-muted); display: flex; flex-direction: column; gap: 4px;">
-<span><strong>Weekly Meet:</strong> Saturdays · 10:00 AM · Innovation Lab</span>
-<span><strong>Upcoming:</strong> Pitch Pad Demo Day Presentations</span>
-</div>
-</div>
-<div style="border-top: 1px solid var(--color-border-subtle); padding-top: 14px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-<span class="subtext" style="font-size: 0.75rem;">Lead: Sara Chawla</span>
-<span class="badge badge-sage" onclick="navigateTo('page-student-pitch')" style="cursor: pointer;">Jump to Pitch Pad</span>
 </div>
 </div>
 </div>
@@ -7348,7 +7287,7 @@
             <h1 id="sd-name" style="font-family: var(--font-heading); font-size: 1.85rem; font-weight: 600; color: var(--color-ink);">Ishaan Kalra</h1>
             <span class="badge badge-sage">● Active Scholar</span>
           </div>
-          <p id="sd-cohort-meta" class="subtext" style="margin-top: 4px; font-size: var(--text-sm);">Class XI-B · Stream Commerce · Orion House</p>
+          <p id="sd-cohort-meta" class="subtext" style="margin-top: 4px; font-size: var(--text-sm);">Class XI-B · Stream Commerce · Nalanda House</p>
           <div style="display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; font-size: var(--text-xs); color: var(--color-ink-muted);">
             <span><i data-lucide="badge" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>Roll: <strong id="sd-roll" style="color: var(--color-ink);">1102-01</strong></span>
             <span><i data-lucide="credit-card" style="width: 13px; height: 13px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>Student ID: <strong id="sd-code" style="color: var(--color-ink);">BOS-XIB-041</strong></span>
@@ -7381,7 +7320,7 @@
     <div class="stat-card">
       <div class="stat-card-label"><span>House Points</span><i data-lucide="shield" style="width: 16px; height: 16px; color: var(--color-status-amber);"></i></div>
       <div class="stat-card-value" id="sd-stat-house">+180</div>
-      <div class="stat-card-meta"><span>Orion House</span></div>
+      <div class="stat-card-meta"><span>Nalanda House</span></div>
     </div>
     <div class="stat-card">
       <div class="stat-card-label"><span>Institutional Docs</span><i data-lucide="file-check-2" style="width: 16px; height: 16px; color: var(--color-ink);"></i></div>
@@ -8020,7 +7959,7 @@ var supabase = (_sbLib && _sbLib.createClient && !isPlaceholderSupabase)
    ========================================================================= */
 const STATE = {
   currentUser: null,
-  currentPage: 'os-shell-welcome',
+  currentPage: 'page-student-dashboard',
   cmdSelectedIndex: 0,
   isSidebarOpenMobile: false,
   activeReviewVentureId: null,
@@ -8042,7 +7981,7 @@ const DEMO_PROFILES = {
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Orion',
+    house: 'Nalanda',
     studentId: 'BOS-XIB-041'
   },
   teacher: {
@@ -8072,7 +8011,6 @@ const ROLE_NAV_CONFIG = {
     { id: 'student-timetable', label: 'Timetable', icon: 'calendar', pageId: 'page-student-timetable' },
     { id: 'student-assignments', label: 'Assignments', icon: 'check-square', pageId: 'page-student-assignments' },
     { id: 'student-pass', label: 'Digital Pass', icon: 'credit-card', pageId: 'page-student-pass' },
-    { id: 'student-pitch', label: 'Pitch Pad', icon: 'rocket', pageId: 'page-student-pitch' },
     { id: 'student-clubs', label: 'Clubs & Houses', icon: 'shield', pageId: 'page-student-clubs' }
   ],
   teacher: [
@@ -8475,7 +8413,7 @@ async function loadUserFromSession(session) {
         initials: (meta.full_name || session.user.email).substring(0, 2).toUpperCase(),
         class_section: meta.class_section || 'XI-B',
         stream: meta.stream || 'Commerce',
-        house: 'Orion',
+        house: 'Nalanda',
         studentId: meta.student_id_code || 'BOS-XIB-041'
       };
       updateRoleIndicatorUI(userProfile.role);
@@ -8499,7 +8437,7 @@ async function loadUserFromSession(session) {
       classInfo: profile.class_section ? `Class ${profile.class_section}` : '',
       stream: profile.stream || 'Commerce',
       grade: profile.class_section ? `Class ${profile.class_section} · Stream ${profile.stream || 'Commerce'}` : (realRole === 'director' ? 'Executive Leadership' : 'Senior Faculty'),
-      house: profile.houses ? profile.houses.name : 'Orion',
+      house: profile.houses ? profile.houses.name : 'Nalanda',
       house_id: profile.house_id,
       studentId: profile.student_id_code || 'BOS-XIB-041',
       avatarUrl: profile.avatar_url
@@ -8558,7 +8496,10 @@ function executeLogin(userObj) {
   const dashWelcomeName = document.getElementById('dash-welcome-name');
   const dashWelcomeMeta = document.getElementById('dash-welcome-meta');
   if (dashWelcomeName) dashWelcomeName.textContent = `Welcome, ${userObj.name}`;
-  if (dashWelcomeMeta) dashWelcomeMeta.textContent = `Class ${userObj.class_section || 'XI-B'} · Stream ${userObj.stream || 'Commerce'} · ${userObj.house || 'Orion'} House · ID: ${userObj.studentId || 'BOS-XIB-041'}`;
+  if (dashWelcomeMeta) dashWelcomeMeta.textContent = `Class ${userObj.class_section || 'XI-B'} · Stream ${userObj.stream || 'Commerce'} · ${userObj.house || 'Nalanda'} House · ID: ${userObj.studentId || 'BOS-XIB-041'}`;
+
+  const passHouseEl = document.getElementById('pass-house-val');
+  if (passHouseEl) passHouseEl.textContent = (userObj.house || 'Nalanda').toUpperCase();
 
   // Hide login, show app viewport
   const loginViewport = document.getElementById('login-viewport');
@@ -8939,7 +8880,6 @@ function executePageTransition(pageId, targetEl) {
     'page-student-timetable': 'Timetable',
     'page-student-assignments': 'Assignments',
     'page-student-pass': 'Digital Pass',
-    'page-student-pitch': 'Pitch Pad',
     'page-student-clubs': 'Clubs & Houses',
     'page-student-detail': 'Student Profile',
     'page-teacher-overview': 'Overview',
@@ -9083,23 +9023,6 @@ function renderSidebarNav() {
     });
   }
 
-  const systemCategory = document.createElement('div');
-  systemCategory.className = 'nav-category';
-  systemCategory.style.marginTop = '18px';
-  systemCategory.textContent = 'System';
-  navContainer.appendChild(systemCategory);
-
-  const overviewBtn = document.createElement('button');
-  overviewBtn.className = `nav-btn sidebar-nav-item ${STATE.currentPage === 'os-shell-welcome' ? 'active' : ''}`;
-  overviewBtn.setAttribute('data-page-id', 'os-shell-welcome');
-  overviewBtn.setAttribute('data-page', 'os-shell-welcome');
-  overviewBtn.onclick = () => navigateTo('os-shell-welcome');
-  overviewBtn.innerHTML = `
-    <i data-lucide="compass" aria-hidden="true" style="width: 18px; height: 18px;"></i>
-    <span>Overview</span>
-  `;
-  navContainer.appendChild(overviewBtn);
-
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 }
 
@@ -9201,7 +9124,6 @@ function filterCommandResults(query) {
     { title: 'Timetable', desc: 'Class XI schedule & active period countdown', icon: 'calendar', action: () => navigateTo('page-student-timetable') },
     { title: 'Assignments', desc: 'Coursework checklist & submission tracker', icon: 'check-square', action: () => navigateTo('page-student-assignments') },
     { title: 'Digital Pass', desc: 'Campus QR identity badge', icon: 'credit-card', action: () => navigateTo('page-student-pass') },
-    { title: 'Pitch Pad', desc: 'Student incubator & venture voting', icon: 'rocket', action: () => navigateTo('page-student-pitch') },
     { title: 'Clubs & Houses', desc: 'House Cup leaderboard & points', icon: 'shield', action: () => navigateTo('page-student-clubs') },
     { title: 'Student Dossier & Documents', desc: 'View student profile, attendance summary, and institutional documents', icon: 'user', action: () => openStudentDetail(STATE.selectedStudentId || 'a0000000-0000-0000-0000-000000000001') },
     { title: 'Class Roster', desc: 'Assigned class section students and profiles (Faculty)', icon: 'users', action: () => navigateTo('page-teacher-roster') },
@@ -9945,17 +9867,18 @@ function renderPitchPad() {
  * Digital Pass & QR Renderer
  */
 let isPassFlipped = false;
-function togglePassFlip() {
+function togglePassFlip(e) {
+  if (e && e.stopPropagation) e.stopPropagation();
   isPassFlipped = !isPassFlipped;
-  const passCard = document.getElementById('digital-pass-card');
+  const passCard = document.getElementById('pass-card-element') || document.getElementById('digital-pass-card');
   if (passCard) passCard.classList.toggle('flipped', isPassFlipped);
 }
 
 function renderDigitalPassQR() {
-  const canvas = document.getElementById('qr-canvas');
+  const canvas = document.getElementById('pass-qr-canvas') || document.getElementById('qr-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const size = 160;
+  const size = 180;
   canvas.width = size;
   canvas.height = size;
 
@@ -9964,7 +9887,7 @@ function renderDigitalPassQR() {
   ctx.fillStyle = '#1C232B';
 
   const modSize = 8;
-  const count = size / modSize;
+  const count = Math.floor(size / modSize);
 
   for (let r = 0; r < count; r++) {
     for (let c = 0; c < count; c++) {
@@ -9996,9 +9919,9 @@ async function fetchHousesLeaderboard() {
   try {
     const { data } = await supabase.from('houses').select('*').order('points', { ascending: false });
     if (data && data.length > 0) {
-      const el = document.getElementById('house-points-orion');
-      const orion = data.find(h => h.name.toLowerCase() === 'orion');
-      if (el && orion) el.textContent = `${orion.points.toLocaleString()} pts`;
+      const el = document.getElementById('house-points-nalanda') || document.getElementById('house-points-orion');
+      const nalanda = data.find(h => h.name.toLowerCase() === 'nalanda') || data.find(h => h.name.toLowerCase() === 'orion');
+      if (el && nalanda) el.textContent = `${nalanda.points.toLocaleString()} pts`;
     }
   } catch (err) {
     console.warn('Houses query fallback:', err);
@@ -10006,10 +9929,10 @@ async function fetchHousesLeaderboard() {
 }
 
 function animateHouseProgressBar() {
-  const bar = document.getElementById('orion-progress-bar');
+  const bar = document.getElementById('nalanda-house-progress-bar') || document.getElementById('orion-house-progress-bar') || document.getElementById('orion-progress-bar');
   if (bar) {
     bar.style.width = '0%';
-    setTimeout(() => { bar.style.width = '78%'; }, 150);
+    setTimeout(() => { bar.style.width = '89.9%'; }, 150);
   }
 }
 
@@ -12914,7 +12837,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Orion',
+    house: 'Nalanda',
     avatar_url: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80',
     attendance_rate: '97.2%',
     academic_avg: '91.0%'
@@ -12928,7 +12851,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Phoenix',
+    house: 'Takshashila',
     avatar_url: '',
     attendance_rate: '94.8%',
     academic_avg: '82.0%'
@@ -12942,7 +12865,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Orion',
+    house: 'Nalanda',
     avatar_url: '',
     attendance_rate: '98.5%',
     academic_avg: '96.0%'
@@ -12956,7 +12879,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Pegasus',
+    house: 'Vikramshila',
     avatar_url: '',
     attendance_rate: '89.2%',
     academic_avg: '68.0%'
@@ -12970,7 +12893,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Centaurus',
+    house: 'Vallabhi',
     avatar_url: '',
     attendance_rate: '92.1%',
     academic_avg: '86.0%'
@@ -12984,7 +12907,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Phoenix',
+    house: 'Takshashila',
     avatar_url: '',
     attendance_rate: '95.6%',
     academic_avg: '77.0%'
@@ -12998,7 +12921,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Orion',
+    house: 'Nalanda',
     avatar_url: '',
     attendance_rate: '93.4%',
     academic_avg: '63.0%'
@@ -13012,7 +12935,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Pegasus',
+    house: 'Vikramshila',
     avatar_url: '',
     attendance_rate: '96.9%',
     academic_avg: '89.0%'
@@ -13026,7 +12949,7 @@ let STUDENTS_ROSTER_DATA = [
     class_section: 'XI-B',
     class_group: 'high',
     stream: 'Commerce',
-    house: 'Centaurus',
+    house: 'Vallabhi',
     avatar_url: '',
     attendance_rate: '91.8%',
     academic_avg: '74.0%'
@@ -13858,7 +13781,7 @@ async function renderStudentDetailPage(studentId) {
 
   if (attEl) attEl.textContent = student.attendance_rate || '97.2%';
   if (acadEl) acadEl.textContent = student.academic_avg || '91.0%';
-  if (houseEl) houseEl.textContent = student.house === 'Orion' ? '+180' : '+140';
+  if (houseEl) houseEl.textContent = (student.house === 'Nalanda' || student.house === 'Orion') ? '+180' : '+140';
 
   // Edit Action Button Visibility (Prompt 5: Teacher or Director)
   const editBtn = document.getElementById('btn-edit-student-profile');
