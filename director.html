@@ -1199,90 +1199,7 @@ DESIGN SYSTEM SPECIFICATIONS:
       transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     }
 
-    /* =========================================================================
-       9. EMERGENCY CONTROL PANEL (RESTRICTED CALM WARNING STYLING)
-       ========================================================================= */
-    .emergency-station {
-      background: rgba(255, 255, 255, 0.88);
-      border: 1.5px solid var(--color-border-warm);
-      border-radius: var(--radius-xl);
-      padding: 34px;
-      box-shadow: var(--shadow-raised);
-      margin-bottom: 28px;
-      position: relative;
-    }
 
-    .emergency-station::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #BA6868, #D4C9B7, #6A8EAE);
-      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    }
-
-    .emergency-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 7px;
-      padding: 5px 12px;
-      background: rgba(186, 104, 104, 0.12);
-      color: #9c4545;
-      border: 1px solid rgba(186, 104, 104, 0.3);
-      border-radius: var(--radius-full);
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    .emergency-grid {
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 24px;
-      margin-top: 24px;
-    }
-
-    .emergency-action-card {
-      background: rgba(248, 244, 237, 0.6);
-      border: 1px solid var(--color-border-warm);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 16px;
-    }
-
-    .emergency-action-card.siren-danger {
-      border-color: rgba(186, 104, 104, 0.4);
-      background: rgba(255, 250, 250, 0.85);
-    }
-
-    .emergency-active-banner {
-      display: none;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-radius: var(--radius-md);
-      background: rgba(186, 104, 104, 0.14);
-      border: 1px solid rgba(186, 104, 104, 0.35);
-      margin-bottom: 24px;
-      animation: alertPulse 2s infinite ease-in-out;
-    }
-
-    .emergency-active-banner.active {
-      display: flex;
-    }
-
-    @keyframes alertPulse {
-      0% { box-shadow: 0 0 0 0 rgba(186, 104, 104, 0.2); }
-      70% { box-shadow: 0 0 0 10px rgba(186, 104, 104, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(186, 104, 104, 0); }
-    }
 
     /* =========================================================================
        10. FEED STYLES
@@ -1727,9 +1644,6 @@ DESIGN SYSTEM SPECIFICATIONS:
       .stats-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      .emergency-grid {
-        grid-template-columns: 1fr;
-      }
     }
 
     @media (max-width: 1024px) {
@@ -2040,13 +1954,13 @@ DESIGN SYSTEM SPECIFICATIONS:
 
             <div class="stat-card">
               <div class="stat-header">
-                <span class="stat-label">Open Ventures</span>
-                <div class="stat-icon"><i data-lucide="rocket" style="width: 18px; height: 18px;"></i></div>
+                <span class="stat-label">Faculty Present</span>
+                <div class="stat-icon"><i data-lucide="user-check" style="width: 18px; height: 18px;"></i></div>
               </div>
-              <div class="stat-value" id="stat-open-ventures">17</div>
+              <div class="stat-value" id="stat-teacher-attendance">28/30</div>
               <div class="stat-meta">
-                <span class="meta-pill" id="stat-pending-ventures-pill">2 Awaiting Review</span>
-                <span>Incubation Cell</span>
+                <span class="meta-pill" id="stat-teacher-attendance-pill">93.3% On Duty</span>
+                <span>Staff attendance today</span>
               </div>
             </div>
 
@@ -2149,146 +2063,11 @@ DESIGN SYSTEM SPECIFICATIONS:
             </div>
           </div>
 
-          <!-- Secondary Calm Institutional Card -->
-          <div class="card card-flat" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
-            <div style="display: flex; align-items: center; gap: 16px;">
-              <div style="width: 44px; height: 44px; border-radius: 12px; background: rgba(106, 142, 174, 0.14); color: var(--color-blue); display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="shield-alert" style="width: 22px; height: 22px;"></i>
-              </div>
-              <div>
-                <strong style="font-size: var(--text-base); display: block; margin-bottom: 2px;">Campus Safety & Directorial Emergency Readiness</strong>
-                <p style="font-size: var(--text-sm); margin: 0;">Automated PA relays, 348 digital smartboards, and emergency dispatch systems are verified operational.</p>
-              </div>
-            </div>
-            <button class="btn-secondary" onclick="navigateTo('page-director-emergency')">
-              <span>Go to Emergency Console</span>
-              <i data-lucide="arrow-right" style="width: 16px; height: 16px;"></i>
-            </button>
-          </div>
         </section>
 
 
         <!-- ===================================================================
-             PAGE 2: EMERGENCY SIREN TRIGGER
-             =================================================================== -->
-        <section id="page-director-emergency" class="os-page">
-          <div class="page-header">
-            <div class="page-header-text">
-              <span class="eyebrow" style="color: #BA6868;">Directorial Security Suite · Restricted Authorization</span>
-              <h1>Emergency Broadcast Control</h1>
-              <p>Campus-wide high-priority audio-visual siren trigger, device override system, and diagnostic hardware testing station.</p>
-            </div>
-          </div>
-
-          <!-- Active Siren Visual Banner (Shows when siren is actively triggered) -->
-          <div class="emergency-active-banner" id="emergency-active-banner">
-            <div style="display: flex; align-items: center; gap: 14px;">
-              <div style="width: 38px; height: 38px; border-radius: 10px; background: #BA6868; color: #FFF; display: flex; align-items: center; justify-content: center;">
-                <i data-lucide="bell-ring" style="width: 20px; height: 20px;"></i>
-              </div>
-              <div>
-                <strong style="color: #8c3636; font-size: var(--text-base); display: block;">EMERGENCY BROADCAST ACTIVE IN DEMO CONSOLE</strong>
-                <span style="font-size: var(--text-xs); color: #733030;" id="active-siren-meta">Protocol: Evacuation Drill · Dispatched to 348 endpoints · Recorded in ledger</span>
-              </div>
-            </div>
-            <button class="btn-secondary" style="border-color: rgba(186, 104, 104, 0.4); background: #FFFFFF;" onclick="deactivateEmergencySiren()">
-              <i data-lucide="square" style="width: 15px; height: 15px; color: #BA6868;"></i>
-              <span>Deactivate / Stand Down</span>
-            </button>
-          </div>
-
-          <!-- Restricted Console Station Container -->
-          <div class="emergency-station">
-            <div class="emergency-badge">
-              <i data-lucide="lock" style="width: 13px; height: 13px;"></i>
-              <span>Restricted Protocol · Tier 1 Directorial Clearance</span>
-            </div>
-
-            <h2 style="font-size: 1.75rem; margin-bottom: 12px; letter-spacing: -0.02em;">Emergency Broadcast Control</h2>
-            
-            <p style="font-size: var(--text-base); line-height: 1.6; max-width: 860px; margin-bottom: 12px;">
-              This control is used for verified campus-wide emergencies. Activating this protocol sends an immediate high-priority alert override across authorized school devices, classroom interactive boards, staff portals, and PA systems. Every activation is logged with an immutable timestamp in the institutional audit ledger.
-            </p>
-
-            <div style="padding: 12px 16px; border-radius: var(--radius-md); background: rgba(212, 201, 183, 0.28); border: 1px solid var(--color-border-warm); font-size: var(--text-xs); color: #615543; line-height: 1.5; margin-bottom: 24px;">
-              <strong>DEMO ONLY:</strong> This control station operates in demonstration mode — it does not contact real emergency systems or physical city sirens. All activations and silent tests are recorded in the local Audit Logs list for simulation and review.
-            </div>
-
-            <!-- Two Distinct Trigger Actions -->
-            <div class="emergency-grid">
-              <!-- Action 1: Activate Emergency Siren -->
-              <div class="emergency-action-card siren-danger">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(186, 104, 104, 0.15); color: #BA6868; display: flex; align-items: center; justify-content: center;">
-                      <i data-lucide="alert-triangle" style="width: 18px; height: 18px;"></i>
-                    </div>
-                    <h3 style="font-size: 1.25rem;">Activate Emergency Siren</h3>
-                  </div>
-                  <p style="font-size: var(--text-sm); line-height: 1.55;">
-                    Initiates high-priority campus warning tone, locks non-essential student devices, and projects emergency evacuation protocol cards onto all classroom screens.
-                  </p>
-                  <div style="margin-top: 12px; font-size: 0.75rem; color: #9c4545; font-weight: 600;">
-                    Requires directorial confirmation modal before activation.
-                  </div>
-                </div>
-
-                <div>
-                  <button class="btn-danger-calm" style="width: 100%; justify-content: center;" onclick="openEmergencyModal()">
-                    <i data-lucide="radio" style="width: 17px; height: 17px;"></i>
-                    <span>Activate Emergency Siren</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Action 2: Run Silent Test -->
-              <div class="emergency-action-card">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(106, 142, 174, 0.12); color: var(--color-blue); display: flex; align-items: center; justify-content: center;">
-                      <i data-lucide="activity" style="width: 18px; height: 18px;"></i>
-                    </div>
-                    <h3 style="font-size: 1.25rem;">Run Silent Test</h3>
-                  </div>
-                  <p style="font-size: var(--text-sm); line-height: 1.55;">
-                    Executes non-audible diagnostic telemetry handshake across all 348 registered classroom endpoints. Validates receiver response time without producing sound.
-                  </p>
-                  <div style="margin-top: 12px; font-size: 0.75rem; color: var(--color-ink-subtle); font-weight: 600;">
-                    Immediate execution · Zero student distraction · Logs to audit trail
-                  </div>
-                </div>
-
-                <div>
-                  <button class="btn-secondary" style="width: 100%; justify-content: center;" onclick="runSilentDiagnosticTest()">
-                    <i data-lucide="check-circle-2" style="width: 17px; height: 17px; color: var(--color-sage);"></i>
-                    <span>Run Silent Test</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Silent Test Diagnostic Feedback Result (Hidden until run) -->
-            <div id="silent-test-results" style="display: none; margin-top: 24px; padding: 18px 22px; border-radius: var(--radius-md); background: rgba(158, 187, 175, 0.16); border: 1px solid rgba(158, 187, 175, 0.38);">
-              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                  <i data-lucide="check-circle" style="width: 22px; height: 22px; color: var(--color-sage);"></i>
-                  <div>
-                    <strong style="font-size: var(--text-sm); color: #2e4d3f; display: block;">Silent Telemetry Ping Succeeded</strong>
-                    <span style="font-size: var(--text-xs); color: #436959;" id="silent-test-details">348/348 endpoints acknowledged in 14ms. Event committed to Audit Logs.</span>
-                  </div>
-                </div>
-                <button class="btn-secondary" style="padding: 6px 12px; font-size: var(--text-xs);" onclick="navigateTo('page-director-audit')">
-                  <span>View in Audit Logs</span>
-                  <i data-lucide="arrow-right" style="width: 14px; height: 14px;"></i>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
-
-
-        <!-- ===================================================================
-             PAGE 3: SCHOOL-WIDE FEED
+             PAGE 2: SCHOOL-WIDE FEED
              =================================================================== -->
         <section id="page-director-feed" class="os-page">
           <div class="page-header">
@@ -2365,7 +2144,7 @@ DESIGN SYSTEM SPECIFICATIONS:
             <div class="page-header-text">
               <span class="eyebrow">Regulatory Compliance & Security</span>
               <h1>Audit Logs</h1>
-              <p>Chronological immutable record of security events, administrative endorsements, emergency broadcast tests, and authentication rotations.</p>
+              <p>Chronological immutable record of security events, administrative endorsements, and authentication rotations.</p>
             </div>
             <div class="page-header-actions">
               <button class="btn-secondary" onclick="exportAuditLogsCSV()">
@@ -2418,61 +2197,6 @@ DESIGN SYSTEM SPECIFICATIONS:
         </section>
 
       </main>
-    </div>
-  </div>
-
-  <!-- =========================================================================
-       EMERGENCY SIREN CONFIRMATION MODAL
-       ========================================================================= -->
-  <div class="modal-overlay" id="emergency-modal-overlay">
-    <div class="modal-window">
-      <div class="modal-header">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(186, 104, 104, 0.15); color: #BA6868; display: flex; align-items: center; justify-content: center;">
-            <i data-lucide="alert-octagon" style="width: 20px; height: 20px;"></i>
-          </div>
-          <div>
-            <h3 style="font-size: 1.25rem;">Confirm Emergency Broadcast</h3>
-            <span style="font-size: var(--text-xs); color: var(--color-ink-subtle);">Directorial Override Authorization</span>
-          </div>
-        </div>
-        <button class="modal-close-btn" onclick="closeEmergencyModal()">
-          <i data-lucide="x" style="width: 18px; height: 18px;"></i>
-        </button>
-      </div>
-
-      <div style="margin-bottom: 20px; font-size: var(--text-sm); line-height: 1.55; color: var(--color-ink-muted);">
-        You are about to transmit a high-priority emergency broadcast across <strong>348 connected campus endpoints</strong> (smartboards, teacher stations, and institutional channels).
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="emergency-type-select">Emergency Incident Type</label>
-        <select id="emergency-type-select" style="width: 100%; padding: 12px 14px; border-radius: var(--radius-md); background: rgba(248, 244, 237, 0.6); border: 1px solid var(--color-border-warm);">
-          <option value="Severe Weather Protocol (Code Yellow)">Severe Weather Protocol (Code Yellow)</option>
-          <option value="Campus Evacuation Drill (Code Blue)">Campus Evacuation Drill (Code Blue)</option>
-          <option value="Full Facility Lockdown (Code Red)">Full Facility Lockdown (Code Red)</option>
-          <option value="Medical Dispatch Priority Alert">Medical Dispatch Priority Alert</option>
-        </select>
-      </div>
-
-      <div class="form-group" style="margin-bottom: 24px;">
-        <label class="form-label" for="emergency-confirm-input">Type "CONFIRM" to authorize broadcast</label>
-        <input 
-          type="text" 
-          id="emergency-confirm-input" 
-          placeholder="CONFIRM" 
-          style="width: 100%; padding: 12px 14px; border-radius: var(--radius-md); font-weight: 600; letter-spacing: 0.05em;"
-          oninput="checkEmergencyConfirmTyping()"
-        />
-      </div>
-
-      <div style="display: flex; gap: 12px; justify-content: flex-end;">
-        <button class="btn-secondary" onclick="closeEmergencyModal()">Cancel</button>
-        <button class="btn-danger-calm" id="emergency-confirm-btn" disabled onclick="confirmAndTriggerSiren()">
-          <i data-lucide="bell" style="width: 16px; height: 16px;"></i>
-          <span>Authorize & Activate Siren</span>
-        </button>
-      </div>
     </div>
   </div>
 
@@ -2672,8 +2396,7 @@ DESIGN SYSTEM SPECIFICATIONS:
       currentPage: 'page-director-analytics',
       cmdSelectedIndex: 0,
       isSidebarOpenMobile: false,
-      activeReviewVentureId: null,
-      emergencyActive: false
+      activeReviewVentureId: null
     };
 
     /* Demo Profiles */
@@ -2708,7 +2431,6 @@ DESIGN SYSTEM SPECIFICATIONS:
     const ROLE_NAV_CONFIG = {
       director: [
         { id: 'director-analytics', label: 'Executive Analytics', icon: 'layout-dashboard', pageId: 'page-director-analytics' },
-        { id: 'director-emergency', label: 'Emergency Siren Trigger', icon: 'alert-octagon', pageId: 'page-director-emergency' },
         { id: 'director-feed', label: 'School-Wide Feed', icon: 'rss', pageId: 'page-director-feed' },
         { id: 'director-ventures', label: 'Venture Approvals', icon: 'rocket', pageId: 'page-director-ventures' },
         { id: 'director-audit', label: 'Audit Logs', icon: 'shield-check', pageId: 'page-director-audit' }
@@ -3179,62 +2901,7 @@ DESIGN SYSTEM SPECIFICATIONS:
       showToast('Announcement Published', 'Dispatched live across campus channels.');
     }
 
-    /* =========================================================================
-       5. EMERGENCY BROADCAST CONTROL ENGINE
-       ========================================================================= */
-    function openEmergencyModal() {
-      document.getElementById('emergency-confirm-input').value = '';
-      document.getElementById('emergency-confirm-btn').disabled = true;
-      document.getElementById('emergency-modal-overlay').classList.add('active');
-    }
 
-    function closeEmergencyModal() {
-      document.getElementById('emergency-modal-overlay').classList.remove('active');
-    }
-
-    function checkEmergencyConfirmTyping() {
-      const val = document.getElementById('emergency-confirm-input').value.trim();
-      const btn = document.getElementById('emergency-confirm-btn');
-      btn.disabled = (val.toUpperCase() !== 'CONFIRM');
-    }
-
-    function confirmAndTriggerSiren() {
-      const type = document.getElementById('emergency-type-select').value;
-      closeEmergencyModal();
-
-      STATE.emergencyActive = true;
-      const banner = document.getElementById('emergency-active-banner');
-      if (banner) {
-        banner.classList.add('active');
-        document.getElementById('active-siren-meta').textContent = 
-          `Protocol: ${type} · Transmitted to 348 classroom endpoints · Ledger updated`;
-      }
-
-      logAuditEvent('Dr. Rhea Sharma', `Activated Emergency Siren Broadcast (${type})`, 'Admin Console');
-      showToast('Emergency Siren Activated', `Broadcast override active for: ${type}`);
-    }
-
-    function deactivateEmergencySiren() {
-      STATE.emergencyActive = false;
-      const banner = document.getElementById('emergency-active-banner');
-      if (banner) banner.classList.remove('active');
-
-      logAuditEvent('Dr. Rhea Sharma', 'Stood down Emergency Siren Broadcast', 'Admin Console');
-      showToast('Emergency Stand Down', 'All campus endpoints returned to standard operational state.');
-    }
-
-    function runSilentDiagnosticTest() {
-      const resultBox = document.getElementById('silent-test-results');
-      const details = document.getElementById('silent-test-details');
-      
-      const latency = Math.floor(Math.random() * 8) + 11; // 11-18ms
-      details.textContent = `348/348 endpoints acknowledged in ${latency}ms. Zero audio emissions verified. Handshake clean.`;
-      
-      resultBox.style.display = 'block';
-
-      logAuditEvent('Dr. Rhea Sharma', `Executed Silent Emergency Beacon Diagnostic Test (${latency}ms)`, 'Admin Console');
-      showToast('Silent Diagnostic Test Passed', `348 nodes verified in ${latency}ms.`);
-    }
 
     /* =========================================================================
        6. EXECUTIVE ANALYTICS ANIMATION & ACTIONS
@@ -3516,7 +3183,6 @@ DESIGN SYSTEM SPECIFICATIONS:
         }
       } else if (e.key === 'Escape') {
         if (cmdOverlay.classList.contains('active')) closeCommandLauncher();
-        closeEmergencyModal();
         closeVentureModal();
         closeNewNoticeModal();
       }
@@ -3570,13 +3236,6 @@ DESIGN SYSTEM SPECIFICATIONS:
           action: () => navigateTo('page-director-analytics')
         },
         {
-          label: 'Emergency Siren Trigger',
-          group: 'Directorate Navigation',
-          icon: 'alert-octagon',
-          pageId: 'page-director-emergency',
-          action: () => navigateTo('page-director-emergency')
-        },
-        {
           label: 'School-Wide Feed',
           group: 'Directorate Navigation',
           icon: 'rss',
@@ -3596,15 +3255,6 @@ DESIGN SYSTEM SPECIFICATIONS:
           icon: 'shield-check',
           pageId: 'page-director-audit',
           action: () => navigateTo('page-director-audit')
-        },
-        {
-          label: 'Run Silent Test (Handshake Diagnostic)',
-          group: 'Quick Directorial Actions',
-          icon: 'activity',
-          action: () => {
-            navigateTo('page-director-emergency');
-            setTimeout(runSilentDiagnosticTest, 200);
-          }
         },
         {
           label: 'Publish Announcement to Feed',

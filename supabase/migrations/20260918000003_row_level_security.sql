@@ -435,6 +435,7 @@ CREATE POLICY "audit_logs_insert_authenticated"
 
 -- -----------------------------------------------------------------------------
 -- 12. EMERGENCY EVENTS POLICIES
+-- Note: emergency_events table is preserved in DB but dormant unless feature returns.
 -- SELECT allowed ONLY for role = 'director'
 -- INSERT allowed for any authenticated user (triggered_by = auth.uid())
 -- -----------------------------------------------------------------------------

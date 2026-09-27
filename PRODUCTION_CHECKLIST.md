@@ -164,8 +164,8 @@ Client-side validation provides immediate user feedback, but **PostgreSQL schema
 ### F. Locked Admin Routes & Runtime Verification
 Admin and Director routes are protected by a two-stage barrier:
 1. **Navigational Gate**: Menu items and URL hash transitions check `STATE.currentUser.role === 'director'`.
-2. **Database Re-Verification on Route Transition**: If a malicious student modifies memory via `STATE.currentUser.role = 'director'` and calls `navigateTo('page-director-emergency')`, `navigateTo` executes a real-time query against `public.profiles` for `auth.uid()`. If the database returns anything other than `'director'`, access is revoked immediately and the user is redirected to their own dashboard.
-3. **Sensitive Action Guard**: `confirmAndTriggerSiren()` independently re-queries `profiles.role` from PostgreSQL before dispatching any campus-wide alarm or inserting to `emergency_events`.
+2. **Database Re-Verification on Route Transition**: If a malicious student modifies memory via `STATE.currentUser.role = 'director'` and calls `navigateTo('page-director-audit')`, `navigateTo` executes a real-time query against `public.profiles` for `auth.uid()`. If the database returns anything other than `'director'`, access is revoked immediately and the user is redirected to their own dashboard.
+3. **Sensitive Action Guard**: Directorial database operations independently re-query `profiles.role` from PostgreSQL before executing privileged actions (e.g. venture approvals, audit queries; emergency siren trigger retired from UI, table dormant).
 
 ---
 

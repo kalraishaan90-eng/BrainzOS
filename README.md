@@ -105,7 +105,7 @@ Every table has `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` enabled.
 | `ventures` (Pitch Pad) | SELECT all; INSERT if `founder_id = auth.uid()`; UPDATE pitch details | SELECT all | Full access (Approve/Reject, Director's Pick) |
 | `venture_votes` | SELECT all; INSERT/DELETE own vote only (`student_id = auth.uid()`) | SELECT all | SELECT all |
 | `audit_logs` | INSERT own actions (`actor_id = auth.uid()`) | INSERT own actions (`actor_id = auth.uid()`) | Full SELECT (Audit dashboard) |
-| `emergency_events` | INSERT own event | INSERT own event | Full SELECT & Siren management |
+| `emergency_events` | INSERT own event | INSERT own event | Full SELECT (Dormant — siren feature retired) |
 
 ### Automated Enforcements:
 - **Profile Provisioning Trigger (`handle_new_user`)**: Listens to `AFTER INSERT ON auth.users` and automatically creates a corresponding record in `public.profiles`.

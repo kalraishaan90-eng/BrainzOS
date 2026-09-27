@@ -151,6 +151,11 @@ CREATE TABLE IF NOT EXISTS public.grades (
 
 -- -----------------------------------------------------------------------------
 -- 8. VENTURES (Pitch Pad) & VENTURE VOTES
+-- NOTE / OPEN ARCHITECTURE QUESTION:
+-- The `ventures` table and its `status` and `directors_pick` columns are kept in the DB as-is.
+-- Without the Director Venture Approvals page, venture status will just stay 'pending'
+-- unless another admin path, faculty delegation, or automated threshold workflow is added later.
+-- This remains an open architectural question rather than a silent operational decision.
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.ventures (
@@ -190,6 +195,8 @@ CREATE TABLE IF NOT EXISTS public.broadcasts (
 
 -- -----------------------------------------------------------------------------
 -- 10. AUDIT LOGS & EMERGENCY EVENTS
+-- Note: emergency_events and audit_logs tables are preserved and left untouched in
+-- the database, but remain dormant unless the Emergency Siren Trigger feature returns.
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS public.audit_logs (
