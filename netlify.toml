@@ -1,3 +1,12 @@
+# BrainzOS Netlify configuration
+# The [build] command runs the DOM-reference smoke test (scripts/check-dom-refs.js)
+# before every deploy. A non-zero exit (MISSING ID / MISSING CLASS / DUPLICATE ID)
+# fails the build and blocks the deploy.
+
+[build]
+  command = "npm test"
+  publish = "."
+
 [[redirects]]
   from = "/"
   to = "/BrainzOS.html"

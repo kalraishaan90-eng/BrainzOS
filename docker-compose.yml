@@ -1,0 +1,180 @@
+version: '3.8'
+
+services:
+  # ---------------------------------------------------------------------------
+  # 1. DATABASE: PostgreSQL 15 with pgvector & RLS enforcement
+  # Data volume is stored on the school server's local filesystem.
+  # ---------------------------------------------------------------------------
+  db:
+    image: supabase/postgres:15.6.1.139
+    container_name: brainzos-db
+    restart: unless-stopped
+    ports:
+      # Expose only to localhost/internal Docker network (never expose 5432 to WAN)
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - ./volumes/db/data:/var/lib/postgresql/data
+      - ./supabase/migrations:/docker-entrypoint-initdb.d/migrations:ro
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: postgres
+      POSTGRES_HOST: /var/run/postgresql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "127.0.0.1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ---------------------------------------------------------------------------
+  # 2. KONG API GATEWAY: Unified API entry point for PostgREST, Auth, Realtime
+  # ---------------------------------------------------------------------------
+  kong:
+    image: kong:2.8.1
+    container_name: brainzos-kong
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /var/lib/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: "off"
+    volumes:
+      - ./docker/kong.yml:/var/lib/kong/kong.yml:ro
+
+  # ---------------------------------------------------------------------------
+  # 3. AUTH (GoTrue): User authentication, JWT issuance, password security
+  # ---------------------------------------------------------------------------
+  auth:
+    image: supabase/gotrue:v2.158.1
+    container_name: brainzos-auth
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL:-http://localhost}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres?sslmode=disable
+      GOTRUE_SITE_URL: ${SITE_URL:-http://localhost}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_JWT_EXP: 86400
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      # Zero external calls: Auto-confirm users locally without third-party email providers
+      GOTRUE_MAILER_AUTOCONFIRM: "true"
+      GOTRUE_DISABLE_SIGNUP: "false"
+
+  # ---------------------------------------------------------------------------
+  # 4. REST API (PostgREST): Auto-generated RESTful API for Postgres tables
+  # ---------------------------------------------------------------------------
+  rest:
+    image: postgrest/postgrest:v12.0.1
+    container_name: brainzos-rest
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      PGRST_DB_SCHEMAS: public,storage
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+
+  # ---------------------------------------------------------------------------
+  # 5. REALTIME: WebSocket PubSub engine for broadcasts and live audits
+  # ---------------------------------------------------------------------------
+  realtime:
+    image: supabase/realtime:v2.28.32
+    container_name: brainzos-realtime
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: postgres
+      DB_SSL: "false"
+      JWT_SECRET: ${JWT_SECRET}
+      REPLICATION_MODE: RLS
+      REPLICATION_POLL_INTERVAL: 100
+      SECURE_CHANNELS: "true"
+      API_JWT_SECRET: ${JWT_SECRET}
+
+  # ---------------------------------------------------------------------------
+  # 6. STORAGE API: On-premises file storage (person documents & attachments)
+  # All documents stay on the school server disk under ./volumes/storage
+  # ---------------------------------------------------------------------------
+  storage:
+    image: supabase/storage-api:v1.0.6
+    container_name: brainzos-storage
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      FILE_STORAGE_BACKEND_PATH: /var/lib/storage
+      STORAGE_BACKEND: file
+      GLOBAL_S3_BUCKET: storage
+      REST_URL: http://rest:3000
+    volumes:
+      - ./volumes/storage:/var/lib/storage
+
+  # ---------------------------------------------------------------------------
+  # 7. EDGE RUNTIME: Local runtime executing teacher provisioning
+  # ---------------------------------------------------------------------------
+  functions:
+    image: supabase/edge-runtime:v1.54.4
+    container_name: brainzos-functions
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgres://postgres:${POSTGRES_PASSWORD}@db:5432/postgres
+      JWT_SECRET: ${JWT_SECRET}
+    volumes:
+      - ./supabase/functions:/home/deno/functions:ro
+
+  # ---------------------------------------------------------------------------
+  # 8. WEB SERVER: Nginx serving BrainzOS frontend + reverse proxying to Kong
+  # Single origin: Frontend and Supabase API share the same host & port.
+  # ---------------------------------------------------------------------------
+  web:
+    image: nginx:alpine
+    container_name: brainzos-web
+    restart: unless-stopped
+    depends_on:
+      - kong
+      - auth
+      - rest
+    ports:
+      - "${APP_PORT:-80}:80"
+    volumes:
+      - .:/usr/share/nginx/html:ro
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/entrypoint.sh:/docker-entrypoint.d/40-generate-config.sh:ro
+    environment:
+      SUPABASE_ANON_KEY: ${ANON_KEY}

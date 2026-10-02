@@ -11,10 +11,10 @@
 -- -----------------------------------------------------------------------------
 
 INSERT INTO public.houses (id, name, points) VALUES
-    ('11111111-1111-1111-1111-111111111101', 'Phoenix', 1380),
-    ('11111111-1111-1111-1111-111111111102', 'Orion', 1240),
-    ('11111111-1111-1111-1111-111111111103', 'Pegasus', 1110),
-    ('11111111-1111-1111-1111-111111111104', 'Centaurus', 970)
+    ('11111111-1111-1111-1111-111111111101', 'Takshashila', 1380),
+    ('11111111-1111-1111-1111-111111111102', 'Nalanda', 1240),
+    ('11111111-1111-1111-1111-111111111103', 'Vikramshila', 1110),
+    ('11111111-1111-1111-1111-111111111104', 'Vallabhi', 970)
 ON CONFLICT (name) DO UPDATE SET
     points = EXCLUDED.points;
 
@@ -140,7 +140,7 @@ SELECT public.seed_user(
     NULL,
     NULL,
     'DIR-EXE-001',
-    'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80'
+    NULL
 );
 
 -- Seed Lead Commerce Faculty (Teacher)
@@ -153,7 +153,7 @@ SELECT public.seed_user(
     'Commerce',
     '11111111-1111-1111-1111-111111111102',
     'FAC-COM-014',
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
+    NULL
 );
 
 -- Seed Core Subject Teachers
@@ -170,9 +170,9 @@ SELECT public.seed_user(
     'student',
     'XI-B',
     'Commerce',
-    '11111111-1111-1111-1111-111111111102', -- Orion House
+    '11111111-1111-1111-1111-111111111102', -- Nalanda House
     'BOS-XIB-041',
-    'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&auto=format&fit=crop&q=80'
+    NULL
 );
 
 -- Seed XI-B Student Cohort (Matches Attendance & Gradebook Rosters)
@@ -443,3 +443,56 @@ INSERT INTO public.audit_logs (actor_id, action, device, created_at) VALUES
 
 INSERT INTO public.emergency_events (triggered_by, type, created_at) VALUES
     ('a0000000-0000-0000-0000-000000000003', 'silent_test', now() - INTERVAL '3 days');
+
+-- -----------------------------------------------------------------------------
+-- 13. STUDENT NOTES (Class Record Register)
+-- -----------------------------------------------------------------------------
+
+INSERT INTO public.student_notes (id, student_id, author_id, category, note, created_at, updated_at) VALUES
+    (
+        '77777777-7777-7777-7777-777777777701',
+        'a0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'academic',
+        'Demonstrates exceptional aptitude in Macroeconomic Policy analysis. Prepared detailed case study notes on monetary policy easing with peer-group leadership.',
+        now() - INTERVAL '5 days',
+        now() - INTERVAL '5 days'
+    ),
+    (
+        '77777777-7777-7777-7777-777777777702',
+        'a0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'attendance',
+        'Punctual arrival for all 08:30 morning assembly periods this term. 100% attendance recorded in Accountancy and Economics lab sessions.',
+        now() - INTERVAL '3 days',
+        now() - INTERVAL '3 days'
+    ),
+    (
+        '77777777-7777-7777-7777-777777777703',
+        'a0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000003',
+        'achievement',
+        'Represented Brainz Senior Secondary at CBSE Regional Commerce Olympiad and secured Second Place honors for Takshashila House.',
+        now() - INTERVAL '2 days',
+        now() - INTERVAL '2 days'
+    ),
+    (
+        '77777777-7777-7777-7777-777777777704',
+        'a0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'parent_contact',
+        'Conducted mid-term progress consultation with mother regarding National Economics Olympiad preparation. Parents affirmed support for weekend training.',
+        now() - INTERVAL '1 day',
+        now() - INTERVAL '1 day'
+    ),
+    (
+        '77777777-7777-7777-7777-777777777705',
+        'a0000000-0000-0000-0000-000000000001',
+        'a0000000-0000-0000-0000-000000000002',
+        'health_welfare',
+        'Student reported mild asthma exacerbation following morning cross-country session; medical inhaler administered at campus infirmary. Cleared for normal classwork.',
+        now() - INTERVAL '6 hours',
+        now() - INTERVAL '6 hours'
+    )
+ON CONFLICT (id) DO NOTHING;
+
