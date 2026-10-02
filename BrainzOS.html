@@ -180,11 +180,26 @@
       --shadow-raised: 0 4px 20px -2px rgba(28, 35, 43, 0.06), 0 2px 6px -1px rgba(28, 35, 43, 0.03);
       --shadow-floating: 0 16px 48px -8px rgba(28, 35, 43, 0.12), 0 4px 12px rgba(28, 35, 43, 0.04);
 
-      /* Motion & Physics */
-      --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+      /* Motion & Physics — iOS-style spring system (single source of truth) */
+      /* Springs approximated with CSS linear() (WebKit/AOSP shared-element
+         curves). --ease-spring: gentle, ~2.5% overshoot.
+         --ease-snappy: faster, ~9% overshoot for selected/hovered indicators. */
+      --ease-spring: linear(0, 0.0088 1.1%, 0.0319 2.2%, 0.1228 4.5%, 0.2402 6.7%, 0.4586 10.6%, 0.6474 14.9%, 0.6853 16.4%, 0.7214 18%, 0.7557 19.7%, 0.7885 21.5%, 0.8198 23.4%, 0.8495 25.4%, 0.8779 27.7%, 0.9046 30.2%, 0.9303 32.9%, 0.9541 35.9%, 0.9761 39.4%, 0.9969 43.7%, 1.0145 49%, 1.023 53.4%, 1.026 59.5%, 1.0219 66.7%, 1.0106 75.8%, 1.0024 85.2%, 0.9989 95.5%, 1);
+      --ease-snappy: linear(0, 0.0273 0.9%, 0.1091 2.1%, 0.2504 3.9%, 0.4471 6.3%, 0.6929 9.5%, 0.8794 12.8%, 1.0004 16.3%, 1.0614 20.4%, 1.0886 25.4%, 1.0851 30.3%, 1.0546 37.3%, 1.0104 46.9%, 0.99 56.5%, 0.9843 68.3%, 0.9978 83.4%, 1.0003 93%, 1);
+      --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
       --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
-      --duration-quick: 180ms;
-      --duration-normal: 260ms;
+
+      /* Durations */
+      --dur-press: 120ms;     /* press / active micro-feedback */
+      --dur-fast: 200ms;      /* pills, toggles, badges, hover lifts */
+      --dur-base: 320ms;      /* cards, nav, content reveals */
+      --dur-sheet: 480ms;     /* sheets, modals, command palette */
+      --stagger-step: 40ms;   /* sequential reveal step */
+
+      /* Legacy ad-hoc tokens, mapped onto the system */
+      --duration-quick: var(--dur-fast);
+      --duration-normal: var(--dur-base);
 
       /* Layout Dimensions */
       --sidebar-width: 264px;
@@ -203,6 +218,14 @@
       --color-status-red-border: rgba(168, 66, 50, 0.28);
 }
 
+    /* Fallback spring curves for engines without CSS linear() easing */
+    @supports not (transition-timing-function: linear(0, 1)) {
+      :root {
+        --ease-spring: cubic-bezier(0.34, 1.24, 0.44, 1);
+        --ease-snappy: cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+    }
+
     /* =========================================================================
        2. BASE RESET & NORMALIZATION
        ========================================================================= */
@@ -210,6 +233,11 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+    }
+
+    /* iOS-style tap: no tap highlight flash on touch devices */
+    html {
+      -webkit-tap-highlight-color: transparent;
     }
 
     html, body {
@@ -255,7 +283,6 @@
       background: radial-gradient(circle, rgba(106, 142, 174, 0.12) 0%, rgba(106, 142, 174, 0.03) 50%, transparent 70%);
       filter: blur(95px);
       -webkit-filter: blur(95px);
-      will-change: transform;
     }
     .ambient-orb-sage {
       position: absolute;
@@ -267,7 +294,6 @@
       background: radial-gradient(circle, rgba(158, 187, 175, 0.14) 0%, rgba(158, 187, 175, 0.03) 52%, transparent 70%);
       filter: blur(100px);
       -webkit-filter: blur(100px);
-      will-change: transform;
     }
     .ambient-orb-warm {
       position: absolute;
@@ -279,7 +305,6 @@
       background: radial-gradient(circle, rgba(212, 201, 183, 0.12) 0%, rgba(212, 201, 183, 0.02) 55%, transparent 70%);
       filter: blur(85px);
       -webkit-filter: blur(85px);
-      will-change: transform;
     }
 
     button, input, select, textarea {
@@ -346,9 +371,9 @@
       border-radius: var(--radius-lg);
       padding: 26px;
       box-shadow: 0 4px 20px -2px rgba(28, 35, 43, 0.05), 0 1px 3px rgba(28, 35, 43, 0.02);
-      transition: transform 240ms var(--ease-spring),
-                  box-shadow 240ms var(--ease-spring),
-                  border-color 200ms ease;
+      transition: transform var(--dur-base) var(--ease-spring),
+                  box-shadow var(--dur-base) var(--ease-spring),
+                  border-color var(--dur-fast) var(--ease-smooth);
     }
 
     .card:hover {
@@ -502,7 +527,11 @@
       white-space: nowrap;
       flex-shrink: 0;
       user-select: none;
-      transition: all var(--duration-quick) var(--ease-spring);
+      transition: transform var(--dur-press) var(--ease-spring),
+                  background-color var(--dur-fast) var(--ease-smooth),
+                  border-color var(--dur-fast) var(--ease-smooth),
+                  color var(--dur-fast) var(--ease-smooth),
+                  box-shadow var(--dur-fast) var(--ease-smooth);
     }
     .status-pill:hover,
     .status-pill-btn:hover {
@@ -510,7 +539,7 @@
     }
     .status-pill:active,
     .status-pill-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.97);
     }
     .status-pill-present {
       background: rgba(158, 187, 175, 0.22);
@@ -773,11 +802,11 @@
     .asg-filter-btn,
     .quick-action-card,
     .tab-btn {
-      transition: transform 150ms cubic-bezier(0.16, 1, 0.3, 1),
-                  box-shadow 180ms ease,
-                  background-color 180ms ease,
-                  color 180ms ease,
-                  border-color 180ms ease;
+      transition: transform var(--dur-press) var(--ease-spring),
+                  box-shadow var(--dur-fast) var(--ease-smooth),
+                  background-color var(--dur-fast) var(--ease-smooth),
+                  color var(--dur-fast) var(--ease-smooth),
+                  border-color var(--dur-fast) var(--ease-smooth);
     }
 
     button:active:not(:disabled),
@@ -787,7 +816,30 @@
     .icon-btn-subtle:active,
     .asg-filter-btn:active,
     .tab-btn:active {
-      transform: scale(0.975);
+      transform: scale(0.97);
+      transition-duration: var(--dur-press);
+    }
+
+    /* Touch-only devices: hover lift must not stick to the last tap */
+    @media (hover: none) {
+      :is(.card, .stat-card, .asg-card, .pitch-card, .vote-btn, .club-card,
+          .assignment-card, .feed-item-card, .student-record-card,
+          .status-pill, .status-pill-btn,
+          .btn-primary, .btn-secondary, .btn-sm-primary):hover {
+        transform: none;
+      }
+      .stat-card:hover::before {
+        height: 0;
+        opacity: 0;
+      }
+      .stat-card:hover::after {
+        opacity: 0;
+      }
+      .stat-card:hover .stat-card-label i,
+      .stat-card:hover .stat-card-label svg,
+      .stat-card:hover .stat-icon {
+        transform: none;
+      }
     }
 
     .btn-primary {
@@ -9642,6 +9694,18 @@ const ROLE_NAV_CONFIG = {
 };
 
 /* =========================================================================
+   MOTION UTILITIES
+   ========================================================================= */
+const REDUCED_MOTION = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+
+/** Feature-guarded haptic tick for toggles / votes / confirmations. */
+function haptic(pattern = 8) {
+  if (!REDUCED_MOTION && typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    try { navigator.vibrate(pattern); } catch (_) { /* unsupported */ }
+  }
+}
+
+/* =========================================================================
    UNIFIED TOAST NOTIFICATION ENGINE
    ========================================================================= */
 let toastTimeout = null;
@@ -9679,6 +9743,7 @@ function showToast(titleOrMsg, desc, iconName = 'check') {
     iconEl.setAttribute('data-lucide', iconName);
   }
 
+  haptic(8);
   toast.classList.add('active');
   if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
 
@@ -12058,6 +12123,7 @@ async function toggleAssignment(asgId) {
   const item = STUDENT_ASSIGNMENTS_DATA.find(a => a.id === asgId);
   if (!item) return;
 
+  haptic(8);
   const nextState = !item.completed;
   item.completed = nextState;
   renderAssignments();
@@ -12222,6 +12288,7 @@ async function togglePitchVote(ventureId) {
   const v = PITCH_VENTURES.find(item => item.id === ventureId);
   if (!v) return;
 
+  haptic(8);
   if (!supabase || !STATE.currentUser) {
     v.hasVoted = !v.hasVoted;
     v.votes += v.hasVoted ? 1 : -1;
@@ -12279,6 +12346,7 @@ async function toggleDirectorsPick(ventureId) {
   const v = PITCH_VENTURES.find(item => item.id === ventureId);
   if (!v) return;
 
+  haptic(8);
   if (!supabase || !STATE.currentUser) {
     v.isDirectorsPick = !v.isDirectorsPick;
     renderPitchPad();
@@ -12361,6 +12429,7 @@ function renderPitchPad() {
 let isPassFlipped = false;
 function togglePassFlip(e) {
   if (e && e.stopPropagation) e.stopPropagation();
+  haptic(8);
   isPassFlipped = !isPassFlipped;
   const passCard = document.getElementById('pass-card-element') || document.getElementById('digital-pass-card');
   if (passCard) passCard.classList.toggle('flipped', isPassFlipped);
@@ -12591,6 +12660,7 @@ function renderAttendanceTable() {
 }
 
 async function cycleStudentStatus(studentId) {
+  haptic(8);
   if (STATE.isAttendanceLocked) {
     showToast('Attendance Locked', 'Roster is finalized and locked. Only an Executive Director can unlock it.', 'lock');
     return;
