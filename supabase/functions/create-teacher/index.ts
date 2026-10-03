@@ -137,7 +137,12 @@ Deno.serve(async (req: Request) => {
     }
 
     // 3. Parse and validate request payload
-    let body: { full_name?: string; email?: string; class_sections_taught?: string | string[] };
+    let body: {
+      full_name?: string;
+      email?: string;
+      class_sections_taught?: string | string[];
+      class_section_ids?: string[];
+    };
     try {
       body = await req.json();
     } catch {
@@ -147,7 +152,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { full_name, email, class_sections_taught } = body;
+    const { full_name, email, class_sections_taught, class_section_ids } = body;
 
     if (!full_name || typeof full_name !== "string" || full_name.trim().length < 2) {
       return new Response(
@@ -164,16 +169,112 @@ Deno.serve(async (req: Request) => {
     }
 
     const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail.endsWith("@brainzeduworld.com")) {
+      return new Response(
+        JSON.stringify({ error: "Faculty email must be on the institutional domain (@brainzeduworld.com)." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     const cleanFullName = full_name.trim();
-    const classSectionsStr = (Array.isArray(class_sections_taught)
-      ? class_sections_taught.join(", ")
-      : (class_sections_taught ? String(class_sections_taught).trim() : "XI-B")).slice(0, 120);
 
-    // 4. Duplicate Check: Ensure user with this email does not already exist
-    // Check both profiles table and auth.users.
-    // public.profiles has no email column; the auth.users scan below is the real
-    // duplicate guard. The student_id_code lookup additionally catches legacy rows
-    // where the institutional identifier was stored as the email.
+    // 3.1 Strict Server-Side Class Section Validation
+    // Validate every submitted class_section id exists in class_sections and is active. Never trust client list.
+    let submittedIds: string[] = [];
+    if (Array.isArray(class_section_ids) && class_section_ids.length > 0) {
+      submittedIds = class_section_ids.map(id => String(id).trim()).filter(Boolean);
+    } else if (Array.isArray(class_sections_taught) && class_sections_taught.length > 0) {
+      submittedIds = class_sections_taught.map(id => String(id).trim()).filter(Boolean);
+    } else if (typeof class_sections_taught === "string" && class_sections_taught.trim()) {
+      submittedIds = class_sections_taught.split(",").map(s => s.trim()).filter(Boolean);
+    }
+
+    if (submittedIds.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "At least one class section must be selected for the faculty member." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Query active class sections from database
+    const { data: allDbSections, error: csErr } = await adminClient
+      .from("class_sections")
+      .select("id, grade, section, stream, display_name, active");
+
+    if (csErr) {
+      console.error("Failed to query class_sections:", csErr);
+      return new Response(
+        JSON.stringify({ error: "Failed to validate class sections against institutional registry." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const availableSections = allDbSections || [];
+    const validatedSections: typeof availableSections = [];
+
+    const toRoman = (n: number) => {
+      const rom: Record<number, string> = { 1: "I", 2: "II", 3: "III", 4: "IV", 5: "V", 6: "VI", 7: "VII", 8: "VIII", 9: "IX", 10: "X", 11: "XI", 12: "XII" };
+      return rom[n] || String(n);
+    };
+
+    for (const token of submittedIds) {
+      const match = availableSections.find(cs =>
+        cs.id === token ||
+        cs.display_name.toLowerCase() === token.toLowerCase() ||
+        `${cs.grade}-${cs.section}`.toLowerCase() === token.toLowerCase() ||
+        (cs.grade >= 11 && `${toRoman(cs.grade)}-${cs.section}`.toLowerCase() === token.toLowerCase()) ||
+        (cs.grade >= 11 && `${toRoman(cs.grade)}-${cs.section} ${cs.stream}`.toLowerCase() === token.toLowerCase()) ||
+        (cs.grade >= 11 && `Class ${toRoman(cs.grade)}-${cs.section}`.toLowerCase() === token.toLowerCase())
+      );
+
+      if (!match) {
+        return new Response(
+          JSON.stringify({
+            error: `Invalid class section: "${token}" does not exist in the institutional class registry.`,
+            code: "CLASS_SECTION_NOT_FOUND"
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!match.active) {
+        return new Response(
+          JSON.stringify({
+            error: `Class section "${match.display_name}" is deactivated. Only active sections can be assigned to faculty.`,
+            code: "CLASS_SECTION_INACTIVE"
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (!validatedSections.some(v => v.id === match.id)) {
+        validatedSections.push(match);
+      }
+    }
+
+    if (validatedSections.length === 0) {
+      return new Response(
+        JSON.stringify({ error: "No valid, active class sections were provided." }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Build standard section code format for backward compatibility (e.g. "XI-B", "3-A", "8-A", "XII-A")
+    const classSectionCodes = validatedSections.map(cs => {
+      if (cs.grade >= 11) {
+        return `${toRoman(cs.grade)}-${cs.section}`;
+      }
+      return `${cs.grade}-${cs.section}`;
+    });
+
+    const classSectionsStr = classSectionCodes.join(", ");
+    const verifiedDisplayNames = validatedSections.map(cs => cs.display_name).join(", ");
+
+    // 4. Duplicate Check (registry hints only; auth.users is the authority)
+    // public.profiles has no email column; Supabase Auth is the sole owner of
+    // account emails. The student_id_code lookup below only surfaces legacy rows
+    // where the institutional identifier was stored as the email — the definitive
+    // duplicate guard is mapping createUser's own error (see step 6), which is
+    // race-free by construction (no pre-scan window for two concurrent calls).
     const { data: existingProfile, error: profileLookupError } = await adminClient
       .from("profiles")
       .select("id, full_name, role")
@@ -188,29 +289,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // auth.admin.listUsers() is paginated (default page size 150). Only scanning the
-    // first page let duplicate emails on later pages slip through to createUser,
-    // which then fails with a opaque 400 instead of the intended 409.
-    let userAlreadyExists = false;
-    const perPage = 200;
-    for (let page = 1; page <= 50 && !userAlreadyExists; page++) {
-      const { data: pageData, error: pageErr } = await adminClient.auth.admin.listUsers({
-        page,
-        perPage,
-      });
-      if (pageErr) {
-        console.error("Auth user lookup failed:", pageErr);
-        return new Response(
-          JSON.stringify({ error: "Could not verify existing accounts. Please retry." }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const users = pageData?.users ?? [];
-      userAlreadyExists = users.some((u) => u.email?.toLowerCase() === normalizedEmail);
-      if (users.length < perPage) break; // last page reached
-    }
-
-    if (existingProfile || userAlreadyExists) {
+    if (existingProfile) {
       return new Response(
         JSON.stringify({
           error: "A user with this email/username already exists in the institutional registry.",
@@ -227,16 +306,39 @@ Deno.serve(async (req: Request) => {
     const { data: newAuthData, error: createUserError } = await adminClient.auth.admin.createUser({
       email: normalizedEmail,
       password: temporaryPassword,
+      // Acceptable for institutional pilot; production should use a real confirmation email flow instead
       email_confirm: true,
       user_metadata: {
         full_name: cleanFullName,
         role: "teacher",
         class_section: classSectionsStr,
+        must_change_password: true,
       },
     });
 
     if (createUserError || !newAuthData?.user) {
       console.error("Error creating auth user:", createUserError);
+      // Supabase Auth rejects a duplicate email with status 422 and code
+      // "email_exists" (message "User already registered"). Map it to our
+      // canonical 409 instead of a generic 400 so the director UI can say
+      // "account exists" rather than "failed to provision". Checking the error
+      // itself (instead of pre-scanning listUsers pages) is race-free: two
+      // concurrent calls cannot both pass a pre-scan, but only one can create.
+      const errStatus = (createUserError as { status?: number } | null)?.status;
+      const errCode = (createUserError as { code?: string } | null)?.code;
+      const isDuplicate =
+        errCode === "email_exists" ||
+        errStatus === 422 ||
+        /already registered/i.test(createUserError?.message || "");
+      if (isDuplicate) {
+        return new Response(
+          JSON.stringify({
+            error: "A user with this email/username already exists in the institutional registry.",
+            code: "USER_ALREADY_EXISTS",
+          }),
+          { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
       return new Response(
         JSON.stringify({
           error: createUserError?.message || "Failed to provision faculty user in authentication service.",
@@ -247,24 +349,26 @@ Deno.serve(async (req: Request) => {
 
     const newUserId = newAuthData.user.id;
 
-    // 7. Ensure profile row in public.profiles exists and is assigned role='teacher'
-    // (The database trigger handle_new_user might insert a default row; we upsert to guarantee teacher role & classes)
-    const { error: upsertProfileError } = await adminClient
+    // 7. Update profile row in public.profiles created by the on_auth_user_created database trigger
+    // (The handle_new_user trigger inserts a row on auth.users insert; update it instead of inserting a new one to prevent race condition)
+    const { error: updateProfileError } = await adminClient
       .from("profiles")
-      .upsert({
-        id: newUserId,
+      .update({
         full_name: cleanFullName,
+        email: normalizedEmail,
         role: "teacher",
+        role_confirmed: true,
         class_section: classSectionsStr,
         stream: "Commerce & Humanities",
         updated_at: new Date().toISOString(),
-      }, { onConflict: "id" });
+      })
+      .eq("id", newUserId);
 
-    if (upsertProfileError) {
+    if (updateProfileError) {
       // The auth user was already created: roll it back so a half-provisioned
       // account cannot linger without a usable profile (a retry would then hit 409
       // forever). We deliberately surface the profile error instead of swallowing it.
-      console.error("Profile upsert failed, deleting orphaned auth user:", upsertProfileError);
+      console.error("Profile update failed, deleting orphaned auth user:", updateProfileError);
       await adminClient.auth.admin.deleteUser(newUserId);
       return new Response(
         JSON.stringify({ error: "Auth user created but profile provisioning failed; please retry." }),

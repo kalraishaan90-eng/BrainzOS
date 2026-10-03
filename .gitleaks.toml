@@ -1,0 +1,40 @@
+title = "BrainzOS Gitleaks Secret Scanning Configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Global allowlist for public keys and non-sensitive hashes"
+paths = [
+  '''\.env\.example$''',
+  '''vendor/.*''',
+  '''config\.js$''',
+  '''README\.md$''',
+  '''DEPLOYMENT-GUIDE\.md$''',
+  '''PRODUCTION_CHECKLIST\.md$'''
+]
+regexes = [
+  '''replace-with-.*''',
+  '''your-ref\.supabase\.co'''
+]
+
+[[rules]]
+id = "supabase-service-role-key"
+description = "Supabase Service Role Key (Elevated Privileges - Must NEVER be in git or frontend)"
+regex = '''(?i)(service_role|service-role|SUPABASE_SERVICE_ROLE_KEY)[\s:=]+["']?(eyJ[a-zA-Z0-9_-]+\.eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+)["']?'''
+secretGroup = 2
+severity = "CRITICAL"
+
+[[rules]]
+id = "jwt-secret"
+description = "Supabase / GoTrue JWT Secret"
+regex = '''(?i)(JWT_SECRET|jwt-secret)[\s:=]+["']?([a-fA-F0-9]{32,64}|[a-zA-Z0-9+/=]{32,})["']?'''
+secretGroup = 2
+severity = "HIGH"
+
+[[rules]]
+id = "postgres-password"
+description = "PostgreSQL Database Password"
+regex = '''(?i)(POSTGRES_PASSWORD|db_password)[\s:=]+["']?([^\s"']{8,})["']?'''
+secretGroup = 2
+severity = "CRITICAL"

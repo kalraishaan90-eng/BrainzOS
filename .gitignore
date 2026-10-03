@@ -1,0 +1,36 @@
+# =============================================================================
+# BrainzOS .gitignore — Production Secrets, Backups & Hardware Volumes
+# =============================================================================
+
+# Secrets & Environment Configurations
+.env
+.env.*
+!.env.example
+
+# Local On-Premises Persistent Storage Volumes
+volumes/
+volumes/db/data/
+volumes/storage/
+
+# Nightly Local Backups
+backups/
+*.dump
+*.sql.gz
+
+# Node Dependencies
+node_modules/
+package-lock.json
+
+# Test Reports and Debug Artifacts
+test-results/
+playwright-report/
+.temp/
+.freebuff/
+*.backup*
+brainzos-PRE-PROD-BACKUP.html
+brainzos-PRE-QA-BACKUP.html
+scripts/audited-inventory.json
+scripts/dynamic-elements.json
+scripts/initial-inventory.json
+scripts/static-elements.json
+scripts/func-names.json

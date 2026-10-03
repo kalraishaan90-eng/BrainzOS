@@ -177,11 +177,24 @@ To eliminate hardcoded credentials in the application shell, credentials are now
 d:\BrainzOS/
 ├── config.js          # Isolated environment config & key rotation guide
 ├── index.html         # Root host entry point with immediate redirect to shell
+├── director.html      # Legacy redirect stub -> BrainzOS.html?role=director
+├── teacher.html       # Legacy redirect stub -> BrainzOS.html?role=teacher
+├── student.html       # Legacy redirect stub -> BrainzOS.html?role=student
 ├── vercel.json        # Vercel deployment rewrite & security headers
 ├── netlify.toml       # Netlify deployment redirect & security headers
-├── BrainzOS.html      # Unified core application shell
+├── BrainzOS.html      # Unified core application shell (all roles)
 └── supabase/          # Database migrations, triggers, and seed data
 ```
+
+### Single-Shell Consolidation
+All role experiences (Student, Teacher, Director) live exclusively in `BrainzOS.html`.
+The former standalone `director.html` / `teacher.html` / `student.html` demo consoles
+were retired to redirect stubs because parallel copies of the same pages drifted apart
+(navigation entries, feature retirements, and element ids diverging between files).
+The shell supports `BrainzOS.html?role=student|teacher|director` deep links that
+pre-fill the matching demo credentials on the login screen (never auto-submitting).
+Preserve the stubs so legacy bookmarks keep working; do not reintroduce role-specific
+HTML copies of pages.
 
 ### Loading Hierarchy
 ```
@@ -198,6 +211,32 @@ If an API key is rotated in Supabase:
 ---
 
 ## 3. Step-by-Step Production Deployment Runbook
+
+### Step 0: Pre-Deploy Smoke Test (Required)
+Before every deploy, run the DOM-reference smoke test. It parses every page and
+fails when JavaScript references an id/class that does not exist in the markup
+(the class of silent breakage previously shipped in the Class Assignments tab):
+
+```bash
+npm test    # runs node scripts/check-dom-refs.js; non-zero exit fails the deploy
+```
+
+A clean run prints `all DOM references resolve` and exits 0. If it reports
+`MISSING ID/CLASS`, fix the reference (or the markup) — do not deploy.
+Deliberately-null-guarded legacy fallback targets are allow-listed in the
+script with a one-line justification each; extend that list only with the
+same discipline.
+
+**This gate is enforced automatically on both deploy platforms** — you do not
+need to remember to run it manually (though you still can):
+
+| Platform | Enforcement | Configuration |
+|---|---|---|
+| **Vercel** | `npm test` is the project **Build Command**; a non-zero exit fails the deployment | `vercel.json` → `buildCommand` |
+| **Netlify** | `npm test` is the `[build] command`; a non-zero exit fails the build and blocks publish | `netlify.toml` → `[build]` |
+
+A broken reference therefore ships as a **failed deployment**, not a silently
+broken page in front of students, faculty, and directors.
 
 ### Step 1: Initialize Git Repository
 Open PowerShell or your terminal in `d:\BrainzOS`:
@@ -232,8 +271,9 @@ gh repo create BrainzOS --public --source=. --remote=origin --push
 4. Under **Project Settings**:
    - **Framework Preset**: Other (Static HTML).
    - **Root Directory**: `./` (Default).
-   - **Build Command**: Leave blank (no build step needed for pure static shell).
-   - **Output Directory**: Leave blank (current directory `./`).
+   - **Build Command**: `npm test` (auto-imported from `vercel.json`; runs the
+     pre-deploy DOM smoke test — do not blank it out).
+   - **Output Directory**: `./` (repo root; auto-imported from `vercel.json`).
 5. (Optional) Under **Environment Variables**, you can supply:
    - `BRAINZOS_SUPABASE_URL` = `https://<your-project-ref>.supabase.co`
    - `BRAINZOS_SUPABASE_ANON_KEY` = `eyJhbGciOi...`
@@ -243,7 +283,9 @@ gh repo create BrainzOS --public --source=. --remote=origin --push
 ### (Alternative) Deploy to Netlify
 1. Log in to [netlify.com](https://netlify.com) and click **Add new site > Import an existing project**.
 2. Select **GitHub** and authorize the `BrainzOS` repository.
-3. Build settings are automatically detected via `netlify.toml`.
+3. Build settings are automatically detected via `netlify.toml`: the build
+   command runs `npm test` (the pre-deploy DOM smoke test) and publishes the
+   repo root.
 4. Click **Deploy Site**. Netlify provides an instant HTTPS URL with automated preview deployments for every git commit.
 
 ---

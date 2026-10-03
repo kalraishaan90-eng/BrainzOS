@@ -1,4 +1,6 @@
 {
+  "buildCommand": "npm test",
+  "outputDirectory": ".",
   "rewrites": [
     { "source": "/", "destination": "/BrainzOS.html" }
   ],

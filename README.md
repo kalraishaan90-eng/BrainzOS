@@ -102,7 +102,7 @@ Every table has `ALTER TABLE ... ENABLE ROW LEVEL SECURITY;` enabled.
 | `assignments` | SELECT all | SELECT all; INSERT/UPDATE/DELETE for own class | Full access |
 | `timetable_entries` | SELECT all | SELECT all; INSERT/UPDATE for taught classes | Full access |
 | `broadcasts` | SELECT all | SELECT all; INSERT/UPDATE own posts | Full access |
-| `ventures` (Pitch Pad) | SELECT all; INSERT if `founder_id = auth.uid()`; UPDATE pitch details | SELECT all | Full access (Approve/Reject, Director's Pick) |
+| `ventures` (Pitch Pad) | SELECT all; INSERT if `founder_id = auth.uid()`; UPDATE pitch details | SELECT all | Full access (Director **approval UI retired** — table kept for student Pitch Pad; rows stay `pending` unless another admin path is added, see migration `20260927000003_venture_approvals_retired.sql`) |
 | `venture_votes` | SELECT all; INSERT/DELETE own vote only (`student_id = auth.uid()`) | SELECT all | SELECT all |
 | `audit_logs` | INSERT own actions (`actor_id = auth.uid()`) | INSERT own actions (`actor_id = auth.uid()`) | Full SELECT (Audit dashboard) |
 | `emergency_events` | INSERT own event | INSERT own event | Full SELECT (Dormant — siren feature retired) |
@@ -122,7 +122,12 @@ supabase/
 │   ├── 20260918000001_initial_schema.sql          # Types, tables, constraints, indexes
 │   ├── 20260918000002_functions_and_triggers.sql  # Helper functions (is_director, etc.), auth triggers
 │   ├── 20260918000003_row_level_security.sql      # RLS policies across all tables
-│   └── 20260918000004_realtime_setup.sql          # Supabase Realtime publications
+│   ├── 20260918000004_realtime_setup.sql          # Supabase Realtime publications
+│   ├── 20260920000001_features_extension.sql      # Leave records, planner, assignments scope
+│   ├── 20260924000001_person_documents_and_attendance_groups.sql  # Documents bucket & grouped attendance
+│   ├── 20260927000001_storage_buckets_and_attachments.sql  # Attachment storage buckets
+│   ├── 20260927000002_teacher_student_profile_edit.sql     # Profile edit permissions & audit
+│   └── 20260927000003_venture_approvals_retired.sql        # Dormant-note marker: director venture approvals UI retired
 ├── seed.sql                                       # Complete demo dataset
 └── README.md                                      # Setup instructions
 ```
